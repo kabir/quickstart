@@ -19,22 +19,33 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <groupId>org.wildfly.quickstarts</groupId>
-        <artifactId>quickstart-parent</artifactId>
-        <!--
-        Maintain separation between the artifact id and the version to help prevent
-        merge conflicts between commits changing the GA and those changing the V.
-        -->
-        <version>23.0.0.Beta1-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
+        <groupId>org.jboss</groupId>
+        <artifactId>jboss-parent</artifactId>
+        <version>37</version>
     </parent>
+
+
+    <!--    <parent>-->
+<!--        <groupId>org.wildfly.quickstarts</groupId>-->
+<!--        <artifactId>quickstart-parent</artifactId>-->
+<!--        &lt;!&ndash;-->
+<!--        Maintain separation between the artifact id and the version to help prevent-->
+<!--        merge conflicts between commits changing the GA and those changing the V.-->
+<!--        &ndash;&gt;-->
+<!--        <version>23.0.0.Beta1-SNAPSHOT</version>-->
+<!--        <relativePath>../pom.xml</relativePath>-->
+<!--    </parent>-->
     <!-- We need a shorter module name here due to what is mentioned in ../shared-doc/xp-install-amq-streams.adoc -->
+    <groupId>org.wildfly.quickstarts</groupId>
     <artifactId>microprofile-reactive-messaging-kafka</artifactId>
+    <version>23.0.0.Beta1-SNAPSHOT</version>
     <packaging>war</packaging>
 
     <name>Quickstart: microprofile-reactive-messaging-kafka</name>
 
     <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
         <!-- Test dependencies versions -->
         <version.io.rest-assured>4.3.1</version.io.rest-assured>
         <version.org.apache.kafka>2.7.0</version.org.apache.kafka>
@@ -50,6 +61,7 @@
             <groupId>jakarta.enterprise</groupId>
             <artifactId>jakarta.enterprise.cdi-api</artifactId>
             <scope>provided</scope>
+            <version>2.0.2</version>
         </dependency>
 
         <!-- Import the Reactive Messaging API, we use provided scope as the API is included in WildFly -->
@@ -57,40 +69,47 @@
             <groupId>org.eclipse.microprofile.reactive.messaging</groupId>
             <artifactId>microprofile-reactive-messaging-api</artifactId>
             <scope>provided</scope>
+            <version>1.0</version>
         </dependency>
         <!-- Import the Reactive Streams Operators API, we use provided scope as the API is included in WildFly -->
         <dependency>
             <groupId>org.eclipse.microprofile.reactive-streams-operators</groupId>
             <artifactId>microprofile-reactive-streams-operators-api</artifactId>
             <scope>provided</scope>
+            <version>1.0.1</version>
         </dependency>
         <!-- Import the Reactive Streams API, we use provided scope as the API is included in WildFly -->
         <dependency>
             <groupId>org.reactivestreams</groupId>
             <artifactId>reactive-streams</artifactId>
             <scope>provided</scope>
+            <version>1.0.3</version>
         </dependency>
         <!-- Import the Kafka Client API, we use provided scope as the API is included in WildFly -->
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
             <scope>provided</scope>
+            <version>2.7.0</version>
         </dependency>
         <!-- Import the Persistence API, we use provided scope as the API is included in WildFly -->
         <dependency>
             <groupId>jakarta.persistence</groupId>
             <artifactId>jakarta.persistence-api</artifactId>
             <scope>provided</scope>
+            <version>2.2.3</version>
         </dependency>
         <dependency>
             <groupId>org.jboss.spec.javax.transaction</groupId>
             <artifactId>jboss-transaction-api_1.3_spec</artifactId>
             <scope>provided</scope>
+            <version>2.0.0.Final</version>
         </dependency>
         <dependency>
             <groupId>org.jboss.spec.javax.ws.rs</groupId>
             <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
             <scope>provided</scope>
+            <version>2.0.1.Final</version>
         </dependency>
 
         <!-- Test dependecies -->
@@ -99,6 +118,7 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>
+            <version>4.13.1</version>
         </dependency>
 
         <!-- MicroProfile Reactive Messaging Kafka Connector Test Dependencies -->
@@ -168,6 +188,7 @@
             <groupId>org.wildfly.arquillian</groupId>
             <artifactId>wildfly-arquillian-common</artifactId>
             <scope>test</scope>
+            <version>3.0.1.Final</version>
         </dependency>
         <dependency>
             <groupId>org.jboss</groupId>
@@ -180,18 +201,55 @@
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
             <scope>test</scope>
+            <version>4.5.3</version>
         </dependency>
         <dependency>
             <groupId>org.jboss.logging</groupId>
             <artifactId>commons-logging-jboss-logging</artifactId>
             <scope>test</scope>
+            <version>1.0.0.Final</version>
         </dependency>
 
         <dependency>
             <groupId>org.jboss.arquillian.junit</groupId>
             <artifactId>arquillian-junit-container</artifactId>
             <scope>test</scope>
+            <version>1.6.0.Final</version>
         </dependency>
     </dependencies>
 
+    <profiles>
+        <profile>
+            <!-- When built in OpenShift the 'openshift' profile will be
+                used when invoking mvn. -->
+            <!-- Use this profile for any OpenShift specific customization
+                your app will ne    ed. -->
+            <!-- By default that is to put the resulting archive into the
+                'deployments' folder. -->
+            <!-- http://maven.apache.org/guides/mini/guide-building-for-different-environments.html -->
+            <id>openshift</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-war-plugin</artifactId>
+                        <version>${version.war.plugin}</version>
+                        <configuration>
+                            <warName>ROOT</warName>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <phase>none</phase>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

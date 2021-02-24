@@ -9,7 +9,7 @@ https://access.redhat.com/products/red-hat-amq#streams[AMQ Streams] Operator. AM
 . Navigate to `Operators` -> `OperatorHub`.
 . Search for `AMQ Streams` - click on the 'Red Hat Integration - AMQ Streams' operator (works with both community and Red Hat).
 Install it with the default values.
-. Run the following command to set up a Kafka cluster called `my-cluster` in your project (Note that this creates an OpenShift route, the name of which is calculated by the names of the project, cluster and OpenShift host. There is an upper limit for how long this name can be so these values are kept intentionally short. There are ways to allow longer names, which require settings beyond the scope of this quickstart):
+. Run the following command to set up a Kafka cluster called `my-cluster` in your project:
 +
 [options="nowrap",subs="+attributes"]
 ----
@@ -40,7 +40,7 @@ EOF
 +
 [options="nowrap",subs="+attributes"]
 ----
-oc apply -n microprofile-rm-kafka-project -f - <<EOF
+oc apply -n microprofile-reactive-messaging-kafka-project -f - <<EOF
 apiVersion: kafka.strimzi.io/v1beta1
 kind: KafkaTopic
 metadata:

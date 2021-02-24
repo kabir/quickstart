@@ -29,7 +29,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
     <!-- We need a shorter module name here due to what is mentioned in ../shared-doc/xp-install-amq-streams.adoc -->
-    <artifactId>microprofile-rm-kafka</artifactId>
+    <artifactId>microprofile-reactive-messaging-kafka</artifactId>
     <packaging>war</packaging>
 
     <name>Quickstart: microprofile-reactive-messaging-kafka</name>

@@ -1,12 +1,12 @@
 include::../shared-doc/attributes.adoc[]
 
-= microprofile-rm-kafka: MicroProfile Reactive Messaging with Kafka QuickStart
+= microprofile-reactive-messaging-kafka: MicroProfile Reactive Messaging with Kafka QuickStart
 :author: Kabir Khan
 :level: Beginner
 :technologies: MicroProfile Reactive Messaging
 
 [abstract]
-The `microprofile-rm-kafka` quickstart demonstrates the use of the MicroProfile Reactive Messaging specification backed by Apache Kafka in {productName}.
+The `microprofile-reactive-messaging-kafka` quickstart demonstrates the use of the MicroProfile Reactive Messaging specification backed by Apache Kafka in {productName}.
 
 :standalone-server-type: default
 :archiveType: war
@@ -59,11 +59,11 @@ include::../shared-doc/run-the-quickstart-in-jboss-developer-studio.adoc[levelof
 ----
 mvn archetype:generate \
     -DgroupId=org.wildfly.quickstarts \
-    -DartifactId=microprofile-rm-kafka \
+    -DartifactId=microprofile-reactive-messaging-kafka \
     -DinteractiveMode=false \
     -DarchetypeGroupId=org.apache.maven.archetypes \
     -DarchetypeArtifactId=maven-archetype-webapp
-cd microprofile-rm-kafka
+cd microprofile-reactive-messaging-kafka
 ----
 
 Open the project in your favourite IDE.
@@ -204,7 +204,7 @@ This will walk you through the steps to write our application. They are:
 * Create a JAX-RS endpoint to return the data that was stored in the RDBMS to the user.
 
 === Adding our Data Generator
-Copy across the `microprofile-rm-kafka/src/main/java/org/jboss/as/quickstarts/reactive/messaging/MockExternalAsyncResource.java` file to your project. This class mocks a call to an asynchronous external resource. The details of how it is implemented are not important for this QuickStart.
+Copy across the `microprofile-reactive-messaging-kafka/src/main/java/org/jboss/as/quickstarts/reactive/messaging/MockExternalAsyncResource.java` file to your project. This class mocks a call to an asynchronous external resource. The details of how it is implemented are not important for this QuickStart.
 
 `MockExternalAsyncResource` has one callable method:
 
@@ -683,7 +683,7 @@ $ mvn clean package wildfly:deploy
 Now we should see output in the server console. First, we see output for the the ones in the determined order:
 [source, options="nowrap"]
 ----
-7:34:53,388 INFO  [org.jboss.as.server] (management-handler-thread - 2) WFLYSRV0010: Deployed "microprofile-rm-kafka.war" (runtime-name : "microprofile-rm-kafka.war")
+7:34:53,388 INFO  [org.jboss.as.server] (management-handler-thread - 2) WFLYSRV0010: Deployed "microprofile-reactive-messaging-kafka.war" (runtime-name : "microprofile-reactive-messaging-kafka.war")
 17:34:55,266 INFO  [stdout] (pool-50-thread-1) Received Hello
 17:34:55,285 INFO  [stdout] (vert.x-eventloop-thread-0) Received from Kafka, storing it in database: TimedEntry{time=2021-01-26 17:34:55.267, message='Hello'}
 17:34:57,263 INFO  [stdout] (pool-50-thread-1) Received world
@@ -708,7 +708,7 @@ Then we get another section where it is using the randomised order
 
 In both parts of the log we see that all messages reach the `logAllMessages()` method, while only `Hello` and `Kafka` reach the `receiveFromKafka()` method which saves them to the RDBMS.
 
-To inspect what was stored in the database, go to http://localhost:8080/microprofile-rm-kafka in  your browser and you should see something like:
+To inspect what was stored in the database, go to http://localhost:8080/microprofile-reactive-messaging-kafka in  your browser and you should see something like:
 
 [source, options="nowrap"]
 ----

@@ -1,0 +1,28 @@
+build:
+  uri: https://github.com/jmesnil/quickstart.git
+  ref: rhosak
+  mode: bootable-jar
+  env:
+  - name: ARTIFACT_DIR
+    value: microprofile-reactive-messaging-kafka/target
+  - name: MAVEN_ARGS_APPEND
+    # Use the bootable-jar-openshift profile to ensure that the application
+    # can be deployed on OpenShift but disable JKube as the image will be 
+    # built and deployed by this chart.
+    value: -am -pl microprofile-reactive-messaging-kafka -Pbootable-jar-openshift -Djkube.skip=true -Dversion.server.bom=24.0.0.Beta1 -Dversion.microprofile.bom=24.0.0.Beta1
+  - name: MAVEN_OPTS
+    value: '-XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=256m'
+deploy:
+  replicas: 1
+  env:
+    - name: GC_MAX_METASPACE_SIZE
+      value: "256"
+    - name: GC_METASPACE_SIZE
+      value: "96"
+  volumeMounts:
+      - name: reactive-messaging-properties
+        mountPath: /etc/config/reactive-messaging-properties
+  volumes:
+    - name: reactive-messaging-properties
+      configMap:
+        name: reactive-messaging-properties

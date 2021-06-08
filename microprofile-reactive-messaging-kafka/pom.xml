@@ -267,6 +267,13 @@
                                 <layer>h2-default-datasource</layer>
                                 <layer>microprofile-reactive-messaging-kafka</layer>
                             </layers>
+                            <cli-sessions>
+                                <cli-session>
+                                    <script-files>
+                                        <script>src/main/scripts/add_config_source_dir.cli</script>
+                                    </script-files>
+                                </cli-session>
+                            </cli-sessions>
                             <plugin-options>
                                 <jboss-fork-embedded>true</jboss-fork-embedded>
                             </plugin-options>

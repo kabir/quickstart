@@ -1,0 +1,18 @@
+apiVersion: binding.operators.coreos.com/v1alpha1
+kind: ServiceBinding
+metadata:
+  name: rhosak-binding
+spec:
+  application:
+    group: apps
+    name: kafka-app
+    resource: deployments
+    version: v1
+
+  namingStrategy: rhosak-config-{{ .name }}
+  bindAsFiles: true
+  services:
+  - group: rhoas.redhat.com
+    version: v1alpha1
+    kind: KafkaConnection
+    name: wildfly-qs-kafkas

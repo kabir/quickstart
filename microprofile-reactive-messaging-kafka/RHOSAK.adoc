@@ -1,0 +1,107 @@
+= Using MicroProfile Reactive Messasing Quickstart with Kafka instances in Red Hat OpenShift Streams for Apache Kafka
+:toc:               left
+
+These instructiosn are an adaption of the https://developers.redhat.com/developer-sandbox/activities/connecting-to-your-managed-kafka-instance[Connecting to your Managed Kafka instance from the Developer Sandbox for Red Hat OpenShift] article
+
+## Prerequisites
+
+* Follow the instructions in the https://developers.redhat.com/developer-sandbox/activities/connecting-to-your-managed-kafka-instance[article] with the following changes:
+** Use a different name for your Kafka instance (instead of `samurai-pizza-kafkas`). For the rest of this guide, I'll use the name `wildfly-quickstart-kafkas" 
+** Name the topic `testing` (instead of `prices`)
+
+Stop at the section "Meanwhile, in your Developer Sandbox..." as we will now use this quickstart for WildFly instead of the Quarkus one.
+
+## Configure Reactive Messaging for Managed Kafka (RHOSAK)
+
+The quickstart was originally intended to run with local Kafka server. In order to configure it for RHOSA, we will deploy a config map that provides the config properties required by MicroProfile Reactive Messaging based on the configuration of the Kafka instance.
+
+[source]
+----
+oc apply -f https://raw.githubusercontent.com/jmesnil/quickstart/rhosak/microprofile-reactive-messaging-kafka/reactive-messaging-properties.yaml
+----
+
+## Connecting the application to Kafka
+
+We need to create a `ServiceBinding` to bind the `KafkaConnection` (that represents the Kafka instance) in our application.
+
+To do so, follow the step in the article in the section "Connecting the application to Kafka" with the service binding being:
+
+[source,yaml]
+----
+# rhosak-binding.yaml
+apiVersion: binding.operators.coreos.com/v1alpha1
+kind: ServiceBinding
+metadata:
+  name: rhosak-binding
+spec:
+  application:
+    group: apps
+    name: kafka-app
+    resource: deployments
+    version: v1
+
+  namingStrategy: rhosak-config-{{ .name }}
+  bindAsFiles: true
+  services:
+  - group: rhoas.redhat.com
+    version: v1alpha1
+    kind: KafkaConnection
+    name: wildfly-qs-kafkas
+----
+
+[NOTE]
+====
+you must have to change the name of the `KafkaConnection` to replace `wildfly-qs-kafkas` with your own name.
+====
+
+Apply this service binding to your OpenShift cluster with:
+
+[source]
+----
+oc apply -f ./rhosak-binding.yaml
+----
+
+When we deploy our application, this will create a config map bound to the `/bindings/rhosak-bindings` directory in the application pods.
+
+## Build and Deploy the quickstart
+
+The application is built with Bootable Jar. 
+In order to access the properties from the two config maps created above, we need to add a CLI scripts to add them to the `microprofile-config-smallrye` subsystem when the
+Bootable Jar is created durin the exection of `mvn package`:
+
+[source]
+----
+/subsystem=microprofile-config-smallrye/config-source=reactive-messaging-properties:add(dir={path=/etc/config/reactive-messaging-properties})
+/subsystem=microprofile-config-smallrye/config-source=rhosak-binding:add(dir={path=/bindings/rhosak-binding})
+----
+
+The quickstart will be deployed using the Helm Chart for WildFly:
+
+[source]
+----
+helm repo add wildfly http://docs.wildfly.org/wildfly-charts/
+helm install kafka-app -f https://raw.githubusercontent.com/jmesnil/quickstart/rhosak/microprofile-reactive-messaging-kafka/kafka-app.yaml wildfly/wildfly
+----
+
+Once the application is built and deployed, you can see the output of the application by going to the external URL of your application:
+
+[source]
+----
+$ oc get route kafka-app -o jsonpath="{.spec.host}"
+kafka-app-jmesnil1-dev.apps.sandbox-m2.ll9k.p1.openshiftapps.com
+----
+
+[NOTE]
+====
+The URL of your application will be different and specific to your OpenShift cluster.
+====
+
+If we query repeatedly this endpoint, we see some of the messages that were propaged on the Kafka instance:
+
+[source]
+----
+$ curl -L $(oc get route kafka-app -o jsonpath="{.spec.host}")
+TimedEntry{id=1, time=2021-06-08 12:10:55.577, message='Kafka'}
+TimedEntry{id=2, time=2021-06-08 12:11:03.577, message='Hello'}
+TimedEntry{id=3, time=2021-06-08 12:11:23.579, message='Hello'}
+----

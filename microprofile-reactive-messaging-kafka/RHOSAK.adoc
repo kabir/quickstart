@@ -6,7 +6,7 @@ These instructiosn are an adaption of the https://developers.redhat.com/develope
 ## Prerequisites
 
 * Follow the instructions in the https://developers.redhat.com/developer-sandbox/activities/connecting-to-your-managed-kafka-instance[article] with the following changes:
-** Use a different name for your Kafka instance (instead of `samurai-pizza-kafkas`). For the rest of this guide, I'll use the name `wildfly-quickstart-kafkas" 
+** Use a different name for your Kafka instance (instead of `samurai-pizza-kafkas`). For the rest of this guide, I'll use the name `wildfly-qs-kafkas`
 ** Name the topic `testing` (instead of `prices`)
 
 Stop at the section "Meanwhile, in your Developer Sandbox..." as we will now use this quickstart for WildFly instead of the Quarkus one.

@@ -269,6 +269,9 @@
                             </layers>
                             <cli-sessions>
                                 <cli-session>
+                                    <!-- do not resolve expression as they reference env vars that -->
+                                    <!-- can be set at runtime -->
+                                    <resolve-expressions>false</resolve-expressions>
                                     <script-files>
                                         <script>src/main/scripts/add_config_source_dir.cli</script>
                                     </script-files>

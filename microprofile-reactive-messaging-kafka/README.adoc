@@ -129,6 +129,12 @@ Now we need to add the dependencies which are needed by what is the focus of thi
         <artifactId>kafka-clients</artifactId>
         <scope>provided</scope>
     </dependency>
+    <!-- Import the SmallRye Kafka API, we use provided scope as the API is included in WildFly -->
+    <dependency>
+        <groupId>io.smallrye.reactive</groupId>
+        <artifactId>smallrye-reactive-messaging-kafka-api</artifactId>
+        <scope>provided</scope>
+    </dependency>
     <!-- Import the Reactive Messaging API, we use provided scope as the API is included in WildFly -->
     <dependency>
         <groupId>org.eclipse.microprofile.reactive.messaging</groupId>
@@ -390,36 +396,59 @@ Our filter method tells us to only relay messages that match `Hello` or `Kafka`,
                 .filter(s -> s.equals("Hello") || s.equals("Kafka"));
     }
 ----
-Next we have another 'processor' method, which receives data from the `sender` stream and forwards it on to the `to-kafka` stream.
+Next we have another 'processor' method, which receives data from the `sender` stream and forwards it on to the `to-kafka` stream. It's parameter is a simple `String`, MicroProfile Reactive Messaging will unwrap the stream from the `PublisherBuilder` returned in the previous method and call this next method with the individual entries.
 
-In this method we want to wrap up the data into the `TimedEntry` class we defined earlier, so we have tuple of the message and a timestamp. Since we are converting data, we should use a Reactive Stream artifact for the method parameter and return type. In this case, we are using `Publisher` from the Reactive Streams specification. Since `Publisher` does not provide any methods to modify the stream, we call `ReactiveStreams.fromPublisher()` to convert it to a MicroProfile Reactive Streams Operators `PublisherBuilder`.
+In this method we want to wrap up the data into the `TimedEntry` class we defined earlier, so we have tuple of the message and a timestamp.
 
-The `PublisherBuilder` gives us the `map()` method which we use to wrap our simple message (which at this stage is either 'Hello' or 'Kafka') and wrap it as a `TimedEntry` which adds a timestamp.
+Additionally we want to set a Kafka key for the entries so that we can take advantage of Kafka's querying capabilities (not done in this quickstart). In order to do this, we do the following steps:
 
-Finally, we convert the `PublisherBuilder` to a `Publisher` again by calling `PublisherBuilder.buildRs()`.
+* Create an instance of `Message` from the MicroProfile Reactive Messaging API. A `Message` is a simple wrapper around the payload. In our case we use the `TimedEntry` instance we created.
+* We create the key for the `TimedEntry`. In this case we just use a hash of the message.
+* Use the `OutgoingKafkaRecordMetadata` builder to create an instance of `OutgoingKafkaRecordMetadata` with the key
+* Next we call `KafkaMetadataUtil.writeOutgoingKafkaMetadata()` to augment the `Message` with the `OutgoingKafkaRecordMetadata`. Note that the `Message` passed in to `KafkaMetadataUtil.writeOutgoingKafkaMetadata()` is not modified, we need the returned one.
+* We return the augmented `Message` to the stream which is backed by Kafka
 
-Note that the conversion fromm `Publisher` to `PublisherBuilder` and back to `Publisher` again is merely illustrative - it would have been perfectly fine to use `PublisherBuilder` as the method parameter and return type as we did for the `filter()` method above.
 [source, java]
 ----
     @Incoming("sender")
     @Outgoing("to-kafka")
-    public Publisher<TimedEntry> sendToKafka(Publisher<String> messages) {
-        return ReactiveStreams.fromPublisher(messages)
-                .map(s -> new TimedEntry(new Timestamp(System.currentTimeMillis()), s))
-                .buildRs();
+    public Message<TimedEntry> sendToKafka(String msg) {
+        // Simpler example for debugging
+        TimedEntry te = new TimedEntry(new Timestamp(System.currentTimeMillis()), msg);
+        Message<TimedEntry> m = Message.of(te);
+        // Just use the hash as the Kafka key for this example
+        int key = te.getMessage().hashCode();
+
+        // Create Metadata containing the Kafka key
+        OutgoingKafkaRecordMetadata<Integer> md = OutgoingKafkaRecordMetadata
+                .<Integer>builder()
+                .withKey(key)
+                .build();
+
+        // The returned message will have the metadata added
+        return KafkaMetadataUtil.writeOutgoingKafkaMetadata(m, md);
     }
 ----
-Our final method is a 'consumer' method, as it has only an `@Incoming` annotation. You can think of this as a 'final destination' for the data in your application. We are using a simple `TimedEntry` as our method parameter, so Reactive Messaging will unwrap the `Publisher<TimedEntry>` sent to the stream in the previous method.
+Our final method is a 'consumer' method, as it has only an `@Incoming` annotation. You can think of this as a 'final destination' for the data in your application. We are using a  `Message<TimedEntry>` as our method parameter. We are using this signature since we want to access the `IncomingKafkaRecordMetadata`, which contains the key we added in the previous method and additional information such as the Kafka partition and topic the message was sent on. Since we are using the signature taking a `Message` as the parameter, we need to `ack()` the message and return the resulting `CompletionStage<Void>`. (If we don't want to ack the receipt of the message and are not interested in the `IncomingKafkaRecordMetadata`, we could have used a simpler signature such as `void receiveFromKafka(TimedEntry message)`.)
 
-It calls through to our `dbBean` to store the received data in a RDBMS. We will look at this briefly later.
+The methid calls through to our `dbBean` to store the received data in a RDBMS. We will look at this briefly later.
 [source, java]
 ----
     @Incoming("from-kafka")
-    public void receiveFromKafka(TimedEntry message) {
-        System.out.println("Received from Kafka, storing it in database: " + message);
-        dbBean.store(message);
-    }
-} // MessagingBean - END
+    public CompletionStage<Void> receiveFromKafka(Message<TimedEntry> message) {
+        TimedEntry payload = message.getPayload();
+
+        IncomingKafkaRecordMetadata<Integer, TimedEntry> md =
+            KafkaMetadataUtil.readIncomingKafkaMetadata(message).get();
+        String msg =
+                "Received from Kafka, storing it in database\n" +
+                "\t%s\n" +
+                "\tkey: %d; partition: %d, topic: %s";
+        msg = String.format(msg, payload, md.getKey(), md.getPartition(), md.getTopic());
+        System.out.println(msg);
+        dbBean.store(payload);
+        return message.ack();
+    }} // MessagingBean - END
 ----
 You might have noticed that up to, and including, the `sendToKafka()` method the `@Incoming.value()` matches the `@Outgoing.value()` of the prior method. This indicates that these streams (`source`, `filter` and `sender`) are handled in memory by the Reactive Messaging implementation.
 
@@ -446,6 +475,8 @@ Again, there are no methods annotated with `@Outgoing("from-kafka")`.
 
 These 'unpaired' sets of methods indicate that we do not want to use an in-memory stream, and want to use an external system for these streams. If we were try to deploy the MessagingBean in this state the application would fail to deploy. To fix this, and tell it what to map onto, we need to provide some configuration.
 
+NOTE: `IncomingKafkaRecordMetadata` is only available on incoming streams coming from Kafka. `OutgoingKafkaRecordMetadata` will only have effect on outgoing streams going to Kafka.
+
 ==== Mapping Streams to Kafka using MicroProfile Config
 To map 'unpaired' streams onto Kafka we need to add a MicroProfile Config file to configure these streams.
 
@@ -457,13 +488,14 @@ mp.messaging.connector.smallrye-kafka.bootstrap.servers=localhost:9092
 
 mp.messaging.outgoing.to-kafka.connector=smallrye-kafka
 mp.messaging.outgoing.to-kafka.topic=testing
+mp.messaging.outgoing.to-kafka.key.serializer=org.apache.kafka.common.serialization.IntegerSerializer
 mp.messaging.outgoing.to-kafka.value.serializer=org.wildfly.quickstarts.microprofile.reactive.messaging.TimedEntrySerializer
 
 # Configure the Kafka source (we read from it)
 mp.messaging.incoming.from-kafka.connector=smallrye-kafka
 mp.messaging.incoming.from-kafka.topic=testing
 mp.messaging.incoming.from-kafka.value.deserializer=org.wildfly.quickstarts.microprofile.reactive.messaging.TimedEntryDeserializer
-
+mp.messaging.incoming.from-kafka.key.deserializer=org.apache.kafka.common.serialization.IntegerDeserializer
 ----
 
 The MicroProfile Reactive Messaging specification mandates the following pre-fixes:
@@ -483,7 +515,10 @@ mp.messaging.outgoing.to-kafka.bootstrap.servers=otherhost:9092
 
 For the incoming and outgoing properties we can see that they all specify that they should use the `smallrye-kafka` connector and that the outgoing one writes to the same topic, `testing`, as the incoming one reads from.
 
-Finally we see that the outgoing configuration uses a `TimedEntrySerializer` while the incoming one uses `TimedEntryDeserializer`. Kafka just deals with byte streams, so we need to tell it how to serialize the data we are sending and how to deserialize the data we are receiving. As seen is configured with properties of the form `mp.messaging.outgoing.<stream name>.value.serializer` and `mp.messaging.incoming.<stream name>.value.deserializer`. The link:https://kafka.apache.org/27/javadoc/org/apache/kafka/common/serialization/package-summary.html[org.apache.kafka.common.serialization] package contains implementations of serializers and deserializers for simple data types and constructs such as maps.
+We see that the outgoing configuration uses a `TimedEntrySerializer` while the incoming one uses `TimedEntryDeserializer` for the values. Kafka just deals with byte streams, so we need to tell it how to serialize the data we are sending and how to deserialize the data we are receiving. As seen is configured with properties of the form `mp.messaging.outgoing.<stream name>.value.serializer` and `mp.messaging.incoming.<stream name>.value.deserializer`. The link:https://kafka.apache.org/27/javadoc/org/apache/kafka/common/serialization/package-summary.html[org.apache.kafka.common.serialization] package contains implementations of serializers and deserializers for simple data types and constructs such as maps.
+
+Finally, since the Kafka key is an `Integer`, we use `IntegerSerializer` and `IntegerDeserializer` for the keys. The concept is exactly the same as for the value (de)serializers, but is instead configured with the properties `mp.messaging.outgoing.<stream name>.key.serializer` and `mp.messaging.incoming.<stream name>.key.deserializer`.
+
 
 ===== Custom (De)Serializers
 In our case the data we are sending to and receiving from Kafka is not a simple object. It is an object of a class defined in our application, so we need to define our own serialization and deserialization. Luckily, this is easy. We just need to implement the link:https://kafka.apache.org/27/javadoc/org/apache/kafka/common/serialization/Serializer.html[org.apache.kafka.common.serialization.Serializer] and link:https://kafka.apache.org/27/javadoc/org/apache/kafka/common/serialization/Deserializer.html[org.apache.kafka.common.serialization.Deserializer] interfaces.
@@ -666,6 +701,8 @@ public class JaxRsApplication extends Application {
 
 Now you should be able to compile the application and prepare it for deployment.
 
+
+
 === Running the Application on a Standalone {productName} Server
 
 We need to first start Apache Kafka. Then we will run the {productName} server and deploy our application to the server.
@@ -702,30 +739,36 @@ Let's check that our application works!
 $ mvn clean package wildfly:deploy
 ----
 
-Now we should see output in the server console. First, we see output for the the ones in the determined order:
+Now we should see output in the server console. First, we see output for the ones in the determined order:
 [source, options="nowrap"]
 ----
-7:34:53,388 INFO  [org.jboss.as.server] (management-handler-thread - 2) WFLYSRV0010: Deployed "microprofile-reactive-messaging-kafka.war" (runtime-name : "microprofile-reactive-messaging-kafka.war")
-17:34:55,266 INFO  [stdout] (pool-50-thread-1) Received Hello
-17:34:55,285 INFO  [stdout] (vert.x-eventloop-thread-0) Received from Kafka, storing it in database: TimedEntry{time=2021-01-26 17:34:55.267, message='Hello'}
-17:34:57,263 INFO  [stdout] (pool-50-thread-1) Received world
-17:34:59,264 INFO  [stdout] (pool-50-thread-1) Received Reactive
-17:35:01,265 INFO  [stdout] (pool-50-thread-1) Received Messaging
-17:35:03,264 INFO  [stdout] (pool-50-thread-1) Received with
-17:35:05,266 INFO  [stdout] (pool-50-thread-1) Received Kafka
-17:35:05,275 INFO  [stdout] (vert.x-eventloop-thread-0) Received from Kafka, storing it in database: TimedEntry{time=2021-01-26 17:35:05.266, message='Kafka'}
+14:24:39,197 INFO  [stdout] (vert.x-eventloop-thread-0) Received from Kafka, storing it in database
+14:24:39,197 INFO  [stdout] (vert.x-eventloop-thread-0) 	TimedEntry{time=2021-08-06 14:24:39.183, message='Hello'}
+14:24:39,197 INFO  [stdout] (vert.x-eventloop-thread-0) 	key: 69609650; partition: 0, topic: testing
+14:24:41,185 INFO  [stdout] (pool-22-thread-1) Received world
+14:24:43,183 INFO  [stdout] (pool-22-thread-1) Received Reactive
+14:24:45,183 INFO  [stdout] (pool-22-thread-1) Received Messaging
+14:24:47,183 INFO  [stdout] (pool-22-thread-1) Received with
+14:24:49,182 INFO  [stdout] (pool-22-thread-1) Received Kafka
+14:24:49,188 INFO  [stdout] (vert.x-eventloop-thread-0) Received from Kafka, storing it in database
+14:24:49,188 INFO  [stdout] (vert.x-eventloop-thread-0) 	TimedEntry{time=2021-08-06 14:24:49.183, message='Kafka'}
+14:24:49,188 INFO  [stdout] (vert.x-eventloop-thread-0) 	key: 72255238; partition: 0, topic: testing
+14:24:51,184 INFO  [stdout] (pool-22-thread-1) Received Kafka
 ----
 Then we get another section where it is using the randomised order
 [source, options="nowrap"]
 ----
-17:35:07,264 INFO  [stdout] (pool-50-thread-1) Received Kafka
-17:35:07,274 INFO  [stdout] (vert.x-eventloop-thread-0) Received from Kafka, storing it in database: TimedEntry{time=2021-01-26 17:35:07.265, message='Kafka'}
-17:35:09,266 INFO  [stdout] (pool-50-thread-1) Received Reactive
-17:35:11,266 INFO  [stdout] (pool-50-thread-1) Received world
-17:35:13,261 INFO  [stdout] (pool-50-thread-1) Received Hello
-17:35:13,268 INFO  [stdout] (vert.x-eventloop-thread-0) Received from Kafka, storing it in database: TimedEntry{time=2021-01-26 17:35:13.261, message='Hello'}
-17:35:15,262 INFO  [stdout] (pool-50-thread-1) Received Kafka
-17:35:15,270 INFO  [stdout] (vert.x-eventloop-thread-0) Received from Kafka, storing it in database: TimedEntry{time=2021-01-26 17:35:15.262, message='Kafka'}
+14:24:51,184 INFO  [stdout] (pool-22-thread-1) Received Kafka
+14:24:51,190 INFO  [stdout] (vert.x-eventloop-thread-0) Received from Kafka, storing it in database
+14:24:51,190 INFO  [stdout] (vert.x-eventloop-thread-0) 	TimedEntry{time=2021-08-06 14:24:51.184, message='Kafka'}
+14:24:51,190 INFO  [stdout] (vert.x-eventloop-thread-0) 	key: 72255238; partition: 0, topic: testing
+14:24:53,184 INFO  [stdout] (pool-22-thread-1) Received world
+14:24:55,184 INFO  [stdout] (pool-22-thread-1) Received world
+14:24:57,184 INFO  [stdout] (pool-22-thread-1) Received Reactive
+14:24:59,181 INFO  [stdout] (pool-22-thread-1) Received Hello
+14:24:59,187 INFO  [stdout] (vert.x-eventloop-thread-0) Received from Kafka, storing it in database
+14:24:59,187 INFO  [stdout] (vert.x-eventloop-thread-0) 	TimedEntry{time=2021-08-06 14:24:59.182, message='Hello'}
+14:24:59,187 INFO  [stdout] (vert.x-eventloop-thread-0) 	key: 69609650; partition: 0, topic: testing
 ----
 
 In both parts of the log we see that all messages reach the `logAllMessages()` method, while only `Hello` and `Kafka` reach the `receiveFromKafka()` method which saves them to the RDBMS.
@@ -734,11 +777,10 @@ To inspect what was stored in the database, go to http://localhost:8080/micropro
 
 [source, options="nowrap"]
 ----
-TimedEntry{id=1, time=2021-01-26 17:34:55.267, message='Hello'}
-TimedEntry{id=2, time=2021-01-26 17:35:05.266, message='Kafka'}
-TimedEntry{id=3, time=2021-01-26 17:35:07.265, message='Kafka'}
-TimedEntry{id=4, time=2021-01-26 17:35:13.261, message='Hello'}
-TimedEntry{id=5, time=2021-01-26 17:35:15.262, message='Kafka'}
+TimedEntry{id=1, time=2021-08-06 14:24:39.183, message='Hello'}
+TimedEntry{id=2, time=2021-08-06 14:24:49.183, message='Kafka'}
+TimedEntry{id=3, time=2021-08-06 14:24:51.184, message='Kafka'}
+TimedEntry{id=4, time=2021-08-06 14:24:59.182, message='Hello'}
 ----
 The timestamps of the entries in the browser match the ones we saw in the server logs.
 

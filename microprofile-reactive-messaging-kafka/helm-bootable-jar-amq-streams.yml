@@ -1,0 +1,47 @@
+# TODO Update to point to the released quickstarts and image
+# Will need a diff commit in the upstream-to-product repository
+build:
+  # TODO this is a temporary workaround.
+  enabled: false
+  # We need to build the server locally
+  # as shown in https://github.com/wildfly-extras/wildfly-jar-maven-plugin/tree/5.0.1.Final/examples/microprofile-config#package-the-application-and-create-the-application-image
+  # Adapted these steps are:
+  #   mvn package -Popenshift,bootable-jar-openshift
+  #   mkdir target/openshift && cp target/microprofile-reactive-messaging-kafka-bootable.jar target/openshift
+  #   oc import-image ubi8/openjdk-11 --from=registry.redhat.io/ubi8/openjdk-11 --confirm
+  #   oc new-build --strategy source --binary --image-stream openjdk-11 --name mp-rm-qs
+  #   oc start-build mp-rm-qs --from-dir target/openshift
+  #   oc set image-lookup mp-rm-qs
+  #
+  # Then we do the Helm install:
+  #   helm install mp-rm-qs -f helm-bootable-jar-amq-streams.yml wildfly/wildfly --set build.ref=WFLY-14800-reactive-features
+  # End workaround
+  uri: https://github.com/kabir/quickstart.git
+  contextDir: microprofile-reactive-messaging-kafka
+  mode: bootable-jar
+  env:
+  - name: ARTIFACT_DIR
+    value: microprofile-reactive-messaging-kafka/target
+  - name: MAVEN_OPTS
+    value: -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=256m
+  - name: MAVEN_ARGS_APPEND
+    # Use the bootable-jar-openshift profile to ensure that the application
+    # can be deployed on OpenShift but disable JKube as the image will be
+    # built and deployed by this chart.
+    value: -Pbootable-jar-openshift -Djkube.skip=true
+deploy:
+  replicas: 1
+  env:
+    - name: GC_MAX_METASPACE_SIZE
+      value: "256"
+    - name: GC_METASPACE_SIZE
+      value: "96"
+    - name: MP_MESSAGING_CONNECTOR_SMALLRYE_KAFKA_BOOTSTRAP_SERVERS
+      value: my-cluster-kafka-bootstrap:9092
+  volumeMounts:
+      - name: reactive-messaging-properties
+        mountPath: /etc/config/reactive-messaging-properties
+  volumes:
+    - name: reactive-messaging-properties
+      configMap:
+        name: reactive-messaging-properties

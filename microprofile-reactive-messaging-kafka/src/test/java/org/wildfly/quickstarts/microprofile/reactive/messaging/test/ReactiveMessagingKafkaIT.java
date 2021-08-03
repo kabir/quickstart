@@ -23,13 +23,19 @@
 package org.wildfly.quickstarts.microprofile.reactive.messaging.test;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.jboss.arquillian.container.test.api.Deployment;
@@ -60,6 +66,8 @@ public class ReactiveMessagingKafkaIT {
 
     private static final long TIMEOUT = 30000;
 
+    private ExecutorService executorService = Executors.newFixedThreadPool(3);
+
     @Deployment
     public static WebArchive getDeployment() {
         final WebArchive webArchive = ShrinkWrap.create(WebArchive.class, "reactive-messaging-kafka-tx.war")
@@ -81,6 +89,48 @@ public class ReactiveMessagingKafkaIT {
                 done = checkResponse(httpResponse, System.currentTimeMillis() > end);
                 Thread.sleep(1000);
             }
+        }
+    }
+
+    @Test
+    public void testUserApi() throws Throwable {
+        String userUrl = url.toExternalForm() + "user";
+        ReadAsynchronousTask taskA = new ReadAsynchronousTask(httpClient, userUrl);
+        executorService.submit(taskA);
+//        ReadAsynchronousTask taskB = new ReadAsynchronousTask(httpClient, userUrl);
+//        executorService.submit(taskB);
+
+        taskA.latch.await();
+//        taskB.latch.await();
+
+        post(userUrl + "/one");
+        post(userUrl + "/two");
+        post(userUrl + "/three");
+
+        long end = System.currentTimeMillis() + TIMEOUT;
+        while (System.currentTimeMillis() < end) {
+            Thread.sleep(200);
+            if (taskA.lines.size() == 3) {
+                break;
+            }
+        }
+
+        checkAsynchTask(taskA, "one", "two", "three");
+//        checkAsynchTask(taskB, "one", "two", "three");
+    }
+
+    private void checkAsynchTask(ReadAsynchronousTask task, String...values) {
+        Assert.assertEquals(3, task.lines.size());
+        for (int i = 0; i < values.length; i++) {
+            Assert.assertTrue("Line " + i + ": " + task.lines.get(i), task.lines.get(i).contains(values[i]));
+        }
+    }
+
+    private void post(String url) throws Exception {
+        HttpPost post = new HttpPost(url);
+        try (CloseableHttpResponse httpResponse = httpClient.execute(post)) {
+            String sc = String.valueOf(httpResponse.getStatusLine().getStatusCode());
+            Assert.assertTrue(sc, sc.startsWith("2"));
         }
     }
 
@@ -112,5 +162,44 @@ public class ReactiveMessagingKafkaIT {
                             " of:\n" + lines, -2, lines.get(i).indexOf("Hello") + lines.get(i).indexOf("Kafka"));
         }
         return true;
+    }
+
+    private static class ReadAsynchronousTask implements Runnable {
+        private CloseableHttpClient httpClient;
+        private final String url;
+        private final CountDownLatch latch = new CountDownLatch(1);
+        private List<String> lines = Collections.synchronizedList(new ArrayList<>());
+
+        public ReadAsynchronousTask(CloseableHttpClient httpClient, String url) {
+            this.httpClient = httpClient;
+            this.url = url;
+        }
+
+        @Override
+        public void run() {
+            HttpGet httpGet = new HttpGet(url);
+            try (CloseableHttpResponse httpResponse = httpClient.execute(httpGet)) {
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(httpResponse.getEntity().getContent()))) {
+                    latch.countDown();
+
+                    String line = reader.readLine();
+                    while (line != null) {
+                        Thread.sleep(100);
+                        if (line.trim().length() > 0) {
+                            lines.add(line);
+                        }
+                        line = reader.readLine();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+            } catch (InterruptedException e) {
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                latch.countDown();
+            }
+        }
     }
 }

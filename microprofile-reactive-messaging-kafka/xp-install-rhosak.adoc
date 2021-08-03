@@ -1,0 +1,86 @@
+// Keeping this file in the reactive messaging quickstart for now (rather than ../shared-doc
+// since it will be quite application specific
+[[install_rhosak]]
+= Install RHOSAK on Openshift
+
+The functionality of this quickstart depends on a running instance of the
+https://www.redhat.com/en/technologies/cloud-computing/openshift/openshift-streams-for-apache-kafka[Red Hat OpenShift Streams for Apache Kafka (RHOSAK)] Operator. RHOSAK is a Red Hat managed cloud service based on Apache Kafka. It runs on OpenShift but outside of your OpenShift environment.
+
+== Setting up RHOSAK
+We will summarize the steps required to set up a Kafka instance in RHOSAK here. They were correct at the time of writing and inspired by the following https://developers.redhat.com/developer-sandbox/activities/connecting-to-your-managed-kafka-instance[article] explaining how to set up an instance in the Developer Sandbox for Red Hat OpenShift, which allows you to try technologies on OpenShift for free. If these steps change, the RHOSAK documentation will have the up to date instructions. Finally, the steps below assume you are using the Developer Sandbox. If you are a paying customer of RHOSAK you should adjust the steps accordingly.
+
+*Prerequisites:*
+Create a https://developers.redhat.com/products/rhosak/getting-started[RHOSAK account] before doing the following steps:
+
+1. From the https://developers.redhat.com/products/rhosak/getting-started[RHOSAK], create a Kafka instance. You need to specify a name for it Kafka instance, for example `my-quickstart-kafka`. In the rest of this text we will use `<kafka-name>` to represent `my-quickstart-kafka`. Apart from the name you can use default values for everything else. It will take a few minutes for your Kafka instance to be ready.
+2. Go into the instance and create a topic called `testing`. Use the suggested defaults for everything else
+
+== Configuring your application
+The Quickstart was originally intended to run with local Kafka server. In order to configure it for RHOSAK, we will deploy a `ConfigMap` that provides the config properties required by MicroProfile Reactive Messaging based on the configuration of the Kafka instance.
+
+[source]
+----
+# QS_HOME is your local folder containing this README
+oc apply -f $QS_HOME/mp-rm-rhosak-properties.yml
+----
+
+If you look at the contents of the file you will see it follows the pattern of MicroProfile Config properties for Reactive Messaging. The ConfigMap properties are merged with the properties in the application's `miceroprofile-config.properties`. Where the same value exists in both places the ConfigMap entry takes so `mp.messaging.connector.smallrye-kafka.bootstrap.servers` from the ConfigMap value will be used. The ConfigMap also provides properties to set up authentication to the RHOSAK Kafka instance.
+
+## Connecting the application to Kafka
+
+We need to create a `ServiceBinding` to bind the `KafkaConnection` (that represents the Kafka instance) in our application.
+
+To do so we create a service binding:
+
+[source,yaml]
+----
+# rhosak-binding.yaml
+apiVersion: binding.operators.coreos.com/v1alpha1
+kind: ServiceBinding
+metadata:
+  name: rhosak-binding
+spec:
+  application:
+    group: apps
+    name: kafka-app
+    resource: deployments
+    version: v1
+
+  namingStrategy: rhosak-config-{{ .name }}
+  bindAsFiles: true
+  services:
+  - group: rhoas.redhat.com
+    version: v1alpha1
+    kind: KafkaConnection
+    name: <kafka-name>
+----
+
+Apply this service binding to your OpenShift cluster with:
+
+[source]
+----
+oc apply -f ./rhosak-binding.yaml
+----
+
+When we deploy our application, this will create a config map bound to the `/bindings/rhosak-bindings` directory in the application pods.
+
+## Build and Deploy the quickstart
+NOTE: TODO Where to put this section???
+
+The application is built with Bootable Jar.
+In order to access the properties from the two config maps created above, we need to add a CLI scripts to add them to the `microprofile-config-smallrye` subsystem when the
+Bootable Jar is created during the exection of `mvn package`:
+
+[source]
+----
+/subsystem=microprofile-config-smallrye/config-source=reactive-messaging-properties:add(dir={path=/etc/config/reactive-messaging-properties})
+/subsystem=microprofile-config-smallrye/config-source=rhosak-binding:add(dir={path=/bindings/rhosak-binding})
+----
+
+The quickstart will be deployed using the Helm Chart for WildFly:
+
+[source]
+----
+helm repo add wildfly http://docs.wildfly.org/wildfly-charts/
+helm install kafka-app -f https://raw.githubusercontent.com/jmesnil/quickstart/rhosak/microprofile-reactive-messaging-kafka/kafka-app.yaml wildfly/wildfly
+----

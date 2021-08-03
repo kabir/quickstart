@@ -589,7 +589,7 @@ public class DatabaseBean {
 }
 ----
 It injects an `EntityManager` for the persitence context `test`, which is defined in the `src/main/resources/META-INF/persistence.xml` file:
-[source, java]
+[source, xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
 <persistence version="2.2"
@@ -747,8 +747,36 @@ include::../shared-doc/xp-create-project.adoc[leveloffset=+2]
 include::../shared-doc/xp-import-imagestreams-templates.adoc[leveloffset=+2]
 // Install AMQ Streams
 include::../shared-doc/xp-install-amq-streams.adoc[leveloffset=+2]
+
 // Deploy the {ProductShortName} Source-to-Image (S2I) Quickstart to OpenShift
-include::../shared-doc/xp-deploy-project.adoc[leveloffset=+2]
+== Deploy the {ProductShortName} Source-to-Image (S2I) Quickstart to OpenShift
+The sub-sections describe how to deploy the application to OpenShift interacting with Kafka provided by either:
+
+* <<xp-deploy-project-amq-streams,AMQ Streams>>
+* <<xp-deploy-project-rhosak,RHOSAK>>
+
+For the purposes of this Quickstart, you should choose one of these approaches, not both.
+
+[[xp-deploy-project-amq-streams]]
+=== Deploy the {ProductShortName} Source-to-Image (S2I) Quickstart to OpenShift with AMQ Streams
+This section describes how to deploy the application to OpenShift interacting with Kafka provided by AMQ Streams. If you want to use RHOSAK instead, see the <<xp-deploy-project-rhosak,RHOSAK instructions>>.
+
+:reactive-messaging-amq-streams:
+:xp-deploy-project-skip-header:
+include::../shared-doc/xp-deploy-project.adoc[leveloffset=+3]
+:!xp-deploy-project-skip-header:
+:!reactive-messaging-amq-streams:
+
+[[xp-deploy-project-rhosak]]
+=== Deploy the {ProductShortName} Source-to-Image (S2I) Quickstart to OpenShift with RHOSAK
+This section describes how to deploy the application to OpenShift interacting with Kafka provided by AMQ Streams. If you want to use AMQ Streams instead, see the <<xp-deploy-project-amq-streams,AMQ Streams instructions>>.
+
+:reactive-messaging-rhosak:
+:xp-deploy-project-skip-header:
+include::../shared-doc/xp-deploy-project.adoc[leveloffset=+3]
+:!xp-deploy-project-skip-header:
+:!reactive-messaging-rhosak:
+
 // Post deployment tasks
 include::../shared-doc/xp-post-deployment-tasks.adoc[leveloffset=+2]
 endif::[]

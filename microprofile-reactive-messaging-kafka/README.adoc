@@ -41,8 +41,12 @@ We recommend that you follow the instructions that
 <<creating-new-project, create the application step by step>>. However, you can
 also go right to the completed example which is available in this directory.
 
+CAUTION: Kafka must be running before attempting to deploy the Quickstart application. See <<running-the-apache-kafka-service,Running the Apache Kafka Service>> for how to do this in your local environment.
+
+
 // Build and Deploy the Quickstart
 include::../shared-doc/build-and-deploy-the-quickstart.adoc[leveloffset=+1]
+
 
 // Undeploy the Quickstart
 include::../shared-doc/undeploy-the-quickstart.adoc[leveloffset=+1]
@@ -667,6 +671,7 @@ Now you should be able to compile the application and prepare it for deployment.
 We need to first start Apache Kafka. Then we will run the {productName} server and deploy our application to the server.
 
 
+[[running-the-apache-kafka-service]]
 == Running the Apache Kafka Service
 
 To run the Apache Kafka service we will use its Docker container. Note that this also requires Apache Zookeeper, so rather than a simple `docker run` command this quickstart directory contains a `docker-compose.yaml` file defining the two Docker containers needed. The

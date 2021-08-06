@@ -180,6 +180,12 @@ Now we need to add the dependencies which are needed by what is the focus of thi
         <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
         <scope>provided</scope>
     </dependency>
+    <!-- Import the resteasy-jaxrs API, we use provided scope as the API is included in WildFly -->
+    <dependency>
+        <groupId>org.jboss.resteasy</groupId>
+        <artifactId>resteasy-jaxrs</artifactId>
+        <scope>provided</scope>
+    </dependency>
 </dependencies>
 ----
 
@@ -683,7 +689,6 @@ public class RootResource {
 }
 
 ----
-
 We expose our JAX-RS application at the context path:
 
 [source,java]
@@ -698,6 +703,155 @@ public class JaxRsApplication extends Application {
 }
 
 ----
+
+### Interaction with User Initiated Code
+So far what we have seen is really happening in the back-end with little user interaction.
+The MicroProfile Reactive Messaging 2.0 specification adds a `@Channel` annotation and an `Emitter` interface which makes it easier to send data to MicroProfile Reactive Messaging streams from user initiated code and to receive data from Reactive Messaging streams.
+
+To showcase this functionality we add another CDI bean called `UserMessagingBean`:
+[source, java]
+----
+package org.wildfly.quickstarts.microprofile.reactive.messaging;
+
+import java.util.concurrent.CopyOnWriteArraySet;
+
+import javax.annotation.PreDestroy;
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.POST;
+import javax.ws.rs.core.Response;
+
+import org.eclipse.microprofile.reactive.messaging.Channel;
+import org.eclipse.microprofile.reactive.messaging.Emitter;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+
+@ApplicationScoped
+public class UserMessagingBean {
+
+    @Inject
+    @Channel("user")
+    private Emitter<String> emitter;
+
+    private BroadcastPublisher<String> broadcastPublisher;
+
+    public UserMessagingBean() {
+        //Needed for CDI spec compliance
+        //The @Inject annotated one will be used
+    }
+
+    @Inject
+    public UserMessagingBean(@Channel("user") Publisher<String> receiver) {
+        this.broadcastPublisher = new BroadcastPublisher(receiver);
+    }
+
+    @PreDestroy
+    public void destroy() {
+        broadcastPublisher.close();
+    }
+
+    public Response send(String value) {
+        System.out.println("Sending " + value);
+        emitter.send(value);
+        return Response.accepted().build();
+    }
+
+    public Publisher<String> getPublisher() {
+        return broadcastPublisher;
+    }
+
+    private class BroadcastPublisher<T> implements Publisher<T> {
+        // See source code for more details
+    }
+}
+----
+
+Looking at this in more detail, the following field
+[source, java]
+----
+    @Inject
+    @Channel("user")
+    private Emitter<String> emitter;
+----
+is used to send data to the MicroProfile Reactive Messagin stream called `user`, which is done in the following method
+[source, java]
+----
+    public Response send(String value) {
+        System.out.println("Sending " + value);
+        emitter.send(value);
+        return Response.accepted().build();
+    }
+----
+
+`@Inject @Channel` on an `Emitter` can be considered similiar to an `@Outgoing` annotated method but with the data coming from code paths invoked by user interaction. In this case we are not using Kafka to back the stream but if we wanted to, for this example, the MicroProfile Config properties would be prefixed with the `mp.messaging.outgoing.user.` prefix.
+
+Next we have the constructor where we inject a `Publisher` (We could also have used a MicroProfile Reactive Streams Operators `PublisherBuiilder`) to define the receiving side.
+
+[source, java]
+----
+    @Inject
+    public UserMessagingBean(@Channel("user") Publisher<String> receiver) {
+        this.broadcastPublisher = new BroadcastPublisher(receiver);
+    }
+----
+We store this injected `Publisher` in the `broadcastPublisher` field. We will come back to why we are wrapping it in a `BroadcastPublisher` in a second.  So an `@Inject @Channel` on a `Publisher` (or `PublisherBuilder`) can be considered equivalent to use of the `@Incoming` annotation. In this case we are listening to the `user` in memory stream so messages sent via the `Emitter` will be received on this `Publisher`. If instead we wanted to configure it to send via Kafka we would use MicroProfile Config properties prefixed with the `mp.messaging.incoming.user.` prefix.
+
+There are a few caveats on this mechanism though:
+
+1. There must be an active `Subscription` (from the Reactive Streams specification) on the channel before the `Emitter.send()` method is called.
+2. There can only be one `Subscription` on the injected `Publisher`. This means that we cannot simply return this `Publisher` as is via an asynchronous JAX-RS endpoint as each client request would result in a separate `Subscription`.
+
+The above two points will hopefully be fixed in a future version of the specification. For the purposes of this quickstart we are bypassing the above limitations by creating the `BroadcastPublisher` class and wrapping the original `Publisher` in that instead. Note that implementing `Publisher` is hard, and that `BroadcastPublisher` should be considered a 'proof of concept'. For more details about the `BroadcastPublisher` see the source code of the `UserMessagingBean` class. In a nutshell what it does is:
+
+* Its constructor subscribes to the injected `Publisher` to avoid the first problem
+* When code subscribes to it, it handles the `Subscription` on its own level, and forwards on code received on the ' a separate level and forwards on data received from the base `Subsciption` created in the constructor.
+
+Finally we have a JAX-RS endpoint
+[source, java]
+----
+package org.wildfly.quickstarts.microprofile.reactive.messaging;
+
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.jboss.resteasy.annotations.Stream;
+import org.reactivestreams.Publisher;
+
+@ApplicationScoped
+@Path("/user")
+@Produces(MediaType.TEXT_PLAIN)
+public class UserResource {
+    @Inject
+    UserMessagingBean bean;
+
+    @POST
+    @Path("{value}")
+    public Response send(@PathParam("value") String value) {
+        bean.send(value);
+        return Response.ok().build();
+    }
+
+    @GET
+    @Stream
+    public Publisher<String> get() {
+        return bean.getPublisher();
+    }
+}
+----
+It simply delegates the values received from `POST` requests under `/user/<value>` onto the bean which sends them via the `Emitter`.
+
+Then `GET` requests for `/user` return the `BroadCastPublisher` to the user who will then receive data received on the MicroProfile Reactive Messaging channel.
+
+---
 
 Now you should be able to compile the application and prepare it for deployment.
 
@@ -783,6 +937,28 @@ TimedEntry{id=3, time=2021-08-06 14:24:51.184, message='Kafka'}
 TimedEntry{id=4, time=2021-08-06 14:24:59.182, message='Hello'}
 ----
 The timestamps of the entries in the browser match the ones we saw in the server logs.
+
+=== Interaction with User Initiated Code
+With the application still running, open two terminal windows. Enter the following `curl` command in both of them
+```
+$curl -N http://localhost:8080/microprofile-reactive-messaging-kafka/user
+```
+The `-N` option keeps the connection open, so we receive data as it becomes available on the publisher.
+
+In a third terminal window enter the commands:
+```
+$curl -X POST http://localhost:8080/microprofile-reactive-messaging-kafka/user/one
+$curl -X POST http://localhost:8080/microprofile-reactive-messaging-kafka/user/two
+$curl -X POST http://localhost:8080/microprofile-reactive-messaging-kafka/user/three
+```
+In the first two terminal windows you should see these entries appear as they are posted:
+```
+data: one
+
+data: two
+
+data: three
+```
 
 
 ifdef::EAPXPRelease[]

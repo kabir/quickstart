@@ -109,6 +109,12 @@
             <artifactId>jboss-jaxrs-api_2.1_spec</artifactId>
             <scope>provided</scope>
         </dependency>
+        <!-- Import the resteasy-jaxrs API, we use provided scope as the API is included in WildFly -->
+        <dependency>
+            <groupId>org.jboss.resteasy</groupId>
+            <artifactId>resteasy-jaxrs</artifactId>
+            <scope>provided</scope>
+        </dependency>
 
         <!-- Test dependencies -->
 

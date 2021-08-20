@@ -4,7 +4,7 @@
 = Install RHOSAK on Openshift
 
 The functionality of this quickstart depends on a running instance of the
-https://www.redhat.com/en/technologies/cloud-computing/openshift/openshift-streams-for-apache-kafka[Red Hat OpenShift Streams for Apache Kafka (RHOSAK)] Operator. RHOSAK is a Red Hat managed cloud service based on Apache Kafka. It runs on OpenShift but outside of your OpenShift environment.
+https://www.redhat.com/en/technologies/cloud-computing/openshift/openshift-streams-for-apache-kafka[Red Hat OpenShift Streams for Apache Kafka (RHOSAK)] Operator. RHOSAK is a Red Hat managed cloud service based on Apache Kafka. It runs on OpenShift but outside your OpenShift environment.
 
 == Setting up RHOSAK
 We will summarize the steps required to set up a Kafka instance in RHOSAK here. They were correct at the time of writing and inspired by the following https://developers.redhat.com/developer-sandbox/activities/connecting-to-your-managed-kafka-instance[article] explaining how to set up an instance in the Developer Sandbox for Red Hat OpenShift, which allows you to try technologies on OpenShift for free. If these steps change, the RHOSAK documentation will have the up to date instructions. Finally, the steps below assume you are using the Developer Sandbox. If you are a paying customer of RHOSAK you should adjust the steps accordingly.
@@ -12,8 +12,9 @@ We will summarize the steps required to set up a Kafka instance in RHOSAK here. 
 *Prerequisites:*
 Create a https://developers.redhat.com/products/rhosak/getting-started[RHOSAK account] before doing the following steps:
 
-1. From the https://developers.redhat.com/products/rhosak/getting-started[RHOSAK], create a Kafka instance. You need to specify a name for it Kafka instance, for example `my-quickstart-kafka`. In the rest of this text we will use `<kafka-name>` to represent `my-quickstart-kafka`. Apart from the name you can use default values for everything else. It will take a few minutes for your Kafka instance to be ready.
-2. Go into the instance and create a topic called `testing`. Use the suggested defaults for everything else
+1. From the https://developers.redhat.com/products/rhosak/getting-started[RHOSAK] console, create a Kafka instance. You need to specify a name for it Kafka instance, for example `my-quickstart-kafka`. In the rest of this text we will use `<kafka-name>` to represent `my-quickstart-kafka`. Apart from the name you can use default values for everything else. It will take a few minutes for your Kafka instance to be ready.
+2. Go into the instance and create a topic called `testing`. Use the suggested defaults for everything else.
+3. https://github.com/redhat-developer/app-services-cli[Download] the `rhosas` application for your OS. Make it available on your path.
 
 == Configuring your application
 The Quickstart was originally intended to run with local Kafka server. In order to configure it for RHOSAK, we will deploy a `ConfigMap` that provides the config properties required by MicroProfile Reactive Messaging based on the configuration of the Kafka instance.
@@ -28,25 +29,41 @@ If you look at the contents of the file you will see it follows the pattern of M
 
 ## Connecting the application to Kafka
 
+First we need to log in to RHOAS. The login process uses the browser session for the console.
+----
+rhoas login
+----
+Then we need to make `rhoas` use our Kafka instance
+----
+rhoas kafka use
+# You will be asked to select your Kafka instance
+----
+Then go to https://console.redhat.com/openshift/token and get the token to authenticate with your OpenShift cluster.
+
+Execute
+----
+rhoas cluster connect --token {your token pasted here}
+----
+This will return some YAML which we will use in the next step. Behind the scenes this authenticates your OpenShift project to work with the RHOSAK Kafka instance, and creates objects containing the configuration to connect to Kafka. These were referenced by the `mp-rm-rhosak-properties.yml` we applied a moment ago.
+
 We need to create a `ServiceBinding` to bind the `KafkaConnection` (that represents the Kafka instance) in our application.
 
-To do so we create a service binding:
+To do so we create a service binding, with the YAML returned from the `rhoas cluster connect` command:
 
 [source,yaml]
 ----
-# rhosak-binding.yaml
 apiVersion: binding.operators.coreos.com/v1alpha1
 kind: ServiceBinding
 metadata:
-  name: rhosak-binding
+  name: kafka-config
+  namespace: <project-name>
 spec:
   application:
     group: apps
-    name: kafka-app
+    name: name-of-your-application
     resource: deployments
     version: v1
 
-  namingStrategy: rhosak-config-{{ .name }}
   bindAsFiles: true
   services:
   - group: rhoas.redhat.com
@@ -54,8 +71,10 @@ spec:
     kind: KafkaConnection
     name: <kafka-name>
 ----
+In your actual returned YAML, the `<project-name>` and `<kafka-name>` placeholders should contain the correct values for your OpenShift project, and Kafka instance. **NB!** You also need to replace `name-of-your-application` with `reactive-messaging-qs`, which is the name we will use when calling `oc new-app` later.
+// For WildFly we specify `-p APPLICATION_NAME=<name>` so we have more control over the name
 
-Apply this service binding to your OpenShift cluster with:
+Save this output to `rhosak-binding.yaml`, and apply this service binding to your OpenShift cluster with:
 
 [source]
 ----
@@ -64,8 +83,10 @@ oc apply -f ./rhosak-binding.yaml
 
 When we deploy our application, this will create a config map bound to the `/bindings/rhosak-bindings` directory in the application pods.
 
+
+////
+This is more for WildFly
 ## Build and Deploy the quickstart
-NOTE: TODO Where to put this section???
 
 The application is built with Bootable Jar.
 In order to access the properties from the two config maps created above, we need to add a CLI scripts to add them to the `microprofile-config-smallrye` subsystem when the
@@ -84,3 +105,5 @@ The quickstart will be deployed using the Helm Chart for WildFly:
 helm repo add wildfly http://docs.wildfly.org/wildfly-charts/
 helm install kafka-app -f https://raw.githubusercontent.com/jmesnil/quickstart/rhosak/microprofile-reactive-messaging-kafka/kafka-app.yaml wildfly/wildfly
 ----
+////
+

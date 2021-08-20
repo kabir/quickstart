@@ -4,10 +4,10 @@ metadata:
   name: reactive-messaging-properties
 data:
   ordinal: "500"
-  mp.messaging.connector.smallrye-kafka.bootstrap.servers: ${rhosak-config-bootstrapServers}
-  mp.messaging.connector.smallrye-kafka.security.protocol: ${rhosak-config-securityProtocol}
-  mp.messaging.connector.smallrye-kafka.sasl.mechanism: ${rhosak-config-saslMechanism}
+  mp.messaging.connector.smallrye-kafka.bootstrap.servers: ${bootstrapServers}
+  mp.messaging.connector.smallrye-kafka.security.protocol: ${securityProtocol}
+  mp.messaging.connector.smallrye-kafka.sasl.mechanism: ${saslMechanism}
   mp.messaging.connector.smallrye-kafka.sasl.jaas.config: >-
     org.apache.kafka.common.security.plain.PlainLoginModule required
-    username="${rhosak-config-user}"
-    password="${rhosak-config-password}";
+    username="${user}"
+    password="${password}";

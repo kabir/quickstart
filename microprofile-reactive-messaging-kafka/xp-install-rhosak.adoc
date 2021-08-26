@@ -25,7 +25,9 @@ The Quickstart was originally intended to run with local Kafka server. In order 
 oc apply -f $QS_HOME/mp-rm-rhosak-properties.yml
 ----
 
-If you look at the contents of the file you will see it follows the pattern of MicroProfile Config properties for Reactive Messaging. The ConfigMap properties are merged with the properties in the application's `miceroprofile-config.properties`. Where the same value exists in both places the ConfigMap entry takes so `mp.messaging.connector.smallrye-kafka.bootstrap.servers` from the ConfigMap value will be used. The ConfigMap also provides properties to set up authentication to the RHOSAK Kafka instance.
+If you look at the contents of the file you will see it follows the pattern of MicroProfile Config properties for Reactive Messaging. The ConfigMap properties are merged with the properties in the application's `miceroprofile-config.properties`. Where the same value exists in both places the ConfigMap entry takes so `mp.messaging.connector.smallrye-kafka.bootstrap.servers` from the ConfigMap value will be used. The ConfigMap also provides properties to set up authentication to the RHOSAK Kafka instance, and it contains references to properties (e.g. `${bootstrapServers}`) that will be populated from the service binding in the next step.
+
+Once deployed this will store the ConfigMap settings in the application pod's `/etc/config/reactive-messaging-properties` directory.
 
 ## Connecting the application to Kafka
 
@@ -35,8 +37,8 @@ rhoas login
 ----
 Then we need to make `rhoas` use our Kafka instance
 ----
-rhoas kafka use
-# You will be asked to select your Kafka instance
+# Substitute <kafka-name> with the name of your Kafka instance
+rhoas kafka use --name <kafka-name>
 ----
 Then go to https://console.redhat.com/openshift/token and get the token to authenticate with your OpenShift cluster.
 
@@ -71,10 +73,11 @@ spec:
     kind: KafkaConnection
     name: <kafka-name>
 ----
-In your actual returned YAML, the `<project-name>` and `<kafka-name>` placeholders should contain the correct values for your OpenShift project, and Kafka instance. **NB!** You also need to replace `name-of-your-application` with `reactive-messaging-qs`, which is the name we will use when calling `oc new-app` later.
-// For WildFly we specify `-p APPLICATION_NAME=<name>` so we have more control over the name
+In your actual returned YAML, the `<project-name>` and `<kafka-name>` placeholders will contain the correct values for your OpenShift project, and Kafka instance.
 
-Save this output to `rhosak-binding.yaml`, and apply this service binding to your OpenShift cluster with:
+NOTE: You need to replace `name-of-your-application` with `reactive-messaging-qs`, which is the name we will use when creating the application later.
+
+Save this adjusted output to `rhosak-binding.yaml`, and apply this service binding to your OpenShift cluster with:
 
 [source]
 ----
@@ -83,27 +86,4 @@ oc apply -f ./rhosak-binding.yaml
 
 When we deploy our application, this will create a config map bound to the `/bindings/rhosak-bindings` directory in the application pods.
 
-
-////
-This is more for WildFly
-## Build and Deploy the quickstart
-
-The application is built with Bootable Jar.
-In order to access the properties from the two config maps created above, we need to add a CLI scripts to add them to the `microprofile-config-smallrye` subsystem when the
-Bootable Jar is created during the exection of `mvn package`:
-
-[source]
-----
-/subsystem=microprofile-config-smallrye/config-source=reactive-messaging-properties:add(dir={path=/etc/config/reactive-messaging-properties})
-/subsystem=microprofile-config-smallrye/config-source=rhosak-binding:add(dir={path=/bindings/rhosak-binding})
-----
-
-The quickstart will be deployed using the Helm Chart for WildFly:
-
-[source]
-----
-helm repo add wildfly http://docs.wildfly.org/wildfly-charts/
-helm install kafka-app -f https://raw.githubusercontent.com/jmesnil/quickstart/rhosak/microprofile-reactive-messaging-kafka/kafka-app.yaml wildfly/wildfly
-----
-////
-
+The `extensions/initialize-server.cli` script will get run as part of initialising the application pod, and adds the mentioned `/bindings/rhosak-bindings` and `/etc/config/reactive-messaging-properties` folders as config sources in the `microprofile-config-smallrye` subsystem. This CLI script only gets added if we pass in the environment variable `QS_USE_RHOSAK=1` when starting the application.

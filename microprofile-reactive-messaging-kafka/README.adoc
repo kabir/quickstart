@@ -999,11 +999,29 @@ For the purposes of this Quickstart, you should choose one of these approaches, 
 === Deploy the {ProductShortName} Source-to-Image (S2I) Quickstart to OpenShift with AMQ Streams
 This section describes how to deploy the application to OpenShift interacting with Kafka provided by AMQ Streams. If you want to use RHOSAK instead, see the <<xp-deploy-project-rhosak,RHOSAK instructions>>.
 
-:reactive-messaging-amq-streams:
-:xp-deploy-project-skip-header:
-include::../shared-doc/xp-deploy-project.adoc[leveloffset=+3]
-:!xp-deploy-project-skip-header:
-:!reactive-messaging-amq-streams:
+//:reactive-messaging-amq-streams:
+//:xp-deploy-project-skip-header:
+//include::../shared-doc/xp-deploy-project.adoc[leveloffset=+3]
+//:!xp-deploy-project-skip-header:
+//:!reactive-messaging-amq-streams:
+To deploy your application, make sure you have downloaded the https://docs.openshift.com/container-platform/4.8/cli_reference/helm_cli/getting-started-with-helm-on-openshift-container-platform.html[Helm CLI Tool]. `./helm-rhosak.yml` contains the information to deploy the application to be backed by Kafka provided by AMQ Streams.
+
+// TODO talk about the contents of helm-rhosak.yml
+TODO: Add description of helm-rhosak.yml
+
+First add the Helm repository:
+// TODO needs a diff commit to differentiate between EAP and Wildfly
+
+----
+helm repo add wildfly http://docs.wildfly.org/wildfly-charts/
+----
+
+Then run the following command to deploy and start the application (note we are using the name `reactive-messaging-qs` for our application here:
+// TODO needs a diff commit to differentiate between EAP and Wildfly
+
+----
+helm install reactive-messaging-qs -f ./helm-amq-streams.yml wildfly/wildfly
+----
 
 [[xp-deploy-project-rhosak]]
 === Deploy the {ProductShortName} Source-to-Image (S2I) Quickstart to OpenShift with RHOSAK
@@ -1022,12 +1040,14 @@ TODO: Add description of helm-rhosak.yml
 
 First add the Helm repository:
 // TODO needs a diff commit to differentiate between EAP and Wildfly
+
 ----
 helm repo add wildfly http://docs.wildfly.org/wildfly-charts/
 ----
 
 Then run the following command to deploy and start the application (note we are using the name `reactive-messaging-qs` for our application here, as mentioned when we connected RHOSAK to our OpenShift project):
 // TODO needs a diff commit to differentiate between EAP and Wildfly
+
 ----
 helm install reactive-messaging-qs -f ./helm-rhosak.yml wildfly/wildfly
 ----

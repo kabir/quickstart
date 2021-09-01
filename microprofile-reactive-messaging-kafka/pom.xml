@@ -619,6 +619,24 @@
                                     -->
                                     <GC_MAX_METASPACE_SIZE>256</GC_MAX_METASPACE_SIZE>
                                     <GC_METASPACE_SIZE>96</GC_METASPACE_SIZE>
+                                </env>
+                            </resources>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>os-jar-amq-streams</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.eclipse.jkube</groupId>
+                        <artifactId>openshift-maven-plugin</artifactId>
+                        <version>${version.jkube.maven.plugin}</version>
+                        <configuration>
+                            <resources>
+                                <env>
                                     <!-- Set the AMQ Streams URL to what is set up by the instructions -->
                                     <MP_MESSAGING_CONNECTOR_SMALLRYE_KAFKA_BOOTSTRAP_SERVERS>my-cluster-kafka-bootstrap:9092</MP_MESSAGING_CONNECTOR_SMALLRYE_KAFKA_BOOTSTRAP_SERVERS>
                                 </env>

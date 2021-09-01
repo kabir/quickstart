@@ -173,8 +173,29 @@ endif::[]
               </plugins>
           </build>
       </profile>
+ifdef::reactive-messaging[]
+      <profile>
+          <id>os-jar-amq-streams</id>
+          <build>
+              <plugins>
+                  <plugin>
+                      <groupId>org.eclipse.jkube</groupId>
+                      <artifactId>openshift-maven-plugin</artifactId>
+                      <version>${version.jkube.maven.plugin}</version>
+                      <configuration>
+                          <resources>
+                              <env>
+                                <!-- Set the AMQ Streams URL to what is set up by the instructions -->
+                                  <MP_MESSAGING_CONNECTOR_SMALLRYE_KAFKA_BOOTSTRAP_SERVERS>my-cluster-kafka-bootstrap:9092</MP_MESSAGING_CONNECTOR_SMALLRYE_KAFKA_BOOTSTRAP_SERVERS>
+                              </env>
+                          </resources>
+                      </configuration>
+                  </plugin>
+              </plugins>
+          </build>
+      </profile>
+endif::[]
 ----
-
 .Procedure
 
 . Log in to your OpenShift instance using the `oc login` command.
@@ -186,14 +207,35 @@ endif::[]
 $ oc new-project bootable-jar-project
 ----
 ifdef::reactive-messaging[]
-. Install AMQ Streams into the `bootable-jar-project` OpenShift project as outlined link:#install_amq_streams[earlier]  in this quickstart. Note that the `MP_MESSAGING_CONNECTOR_SMALLRYE_KAFKA_BOOTSTRAP_SERVERS` environment variable in the pom.xml assume you have used the indicated name for your AMQ Streams cluster.
+. Install Kafka by either:
+
+ a. Installing AMQ Streams into the `bootable-jar-project` OpenShift project as outlined link:#install_amq_streams[earlier]  in this quickstart. Note that the `MP_MESSAGING_CONNECTOR_SMALLRYE_KAFKA_BOOTSTRAP_SERVERS` environment variable in the `os-jar-amq-streams` profile in the pom.xml assume you have used the indicated name `my-cluster` for your AMQ Streams cluster.
+ b. Installing RHOSAK into the `bootable-jar-project` OpenShift project as outlined link:#install_rhosak[earlier]  in this quickstart.
+
 endif::[]
 . Build the quickstart bootable JAR by issuing the following command. This command also completes the following tasks: creates the OpenShift deployment, service and route; generates a docker image and pushes the docker image to OpenShift; and runs the application.
 +
+// Bootable jar Deployment
++
+ifndef::reactive-messaging[]
 [source,subs="attributes+",options="nowrap"]
 ----
 $ mvn oc:deploy -Pbootable-jar-openshift
 ----
+endif::[]
+ifdef::reactive-messaging[]
++
+a. If you are targeting AMQ Kafka supplied by AMQ Streams, use the following command:
++
+[source,subs="attributes+",options="nowrap"]
+----
+$ mvn oc:deploy -Pbootable-jar-openshift,os-jar-amq-streams
+----
+Note that the additional `os-jar-amq-streams` profile specified as an argument to Maven sets up the `MP_MESSAGING_CONNECTOR_SMALLRYE_KAFKA_BOOTSTRAP_SERVERS` environment to connect to the cluster we specified earlier.
+endif::[]
++
+// Bootable jar Deployment - END
++
 . Get the URL of the route.
 +
 [options="nowrap"]

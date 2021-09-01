@@ -8,5 +8,10 @@ set -x
 echo "Running microprofile-reactive-messaging-kafka/install.sh"
 injected_dir=$1
 # copy any needed files into the target build.
-cp -rf ${injected_dir} $JBOSS_HOME/extensions
+if [ -d "${JBOSS_HOME}/extensions" ]; then
+  echo "Copying extensions directory to $JBOSS_HOME/extensions"
+  cp -rf ${injected_dir} $JBOSS_HOME/extensions
+else
+  echo "Running in bootable jar mode, not copying extensions directory"
+fi
 

@@ -5,13 +5,6 @@ build:
   ref: WFLY-14800-reactive-features
   contextDir: microprofile-reactive-messaging-kafka
   mode: bootable-jar
-#  s2i:
-#    version: latest
-#    builderImage: quay.io/kabirk/reactive-features
-#    galleonLayers:
-#      - cloud-server
-#      - h2-default-datasource
-#      - microprofile-reactive-messaging-kafka
   env:
   - name: MAVEN_OPTS
     value: -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=256m
@@ -25,7 +18,8 @@ deploy:
       # Use the bootable-jar-openshift profile to ensure that the application
       # can be deployed on OpenShift but disable JKube as the image will be
       # built and deployed by this chart.
-      value: -am -pl microprofile-reactive-messaging-kafka -Pbootable-jar-openshift -Djkube.skip=true -Dversion.server.bom=24.0.0.Beta1 -Dversion.microprofile.bom=24.0.0.Beta1
+      #value: -am -pl microprofile-reactive-messaging-kafka -Pbootable-jar-openshift -Djkube.skip=true -Dversion.server.bom=25.0.0.Beta1-SNAPSHOT -Dversion.microprofile.bom=25.0.0.Beta1-SNAPSHOT
+      value: -pl microprofile-reactive-messaging-kafka -Pbootable-jar-openshift,os-jar-rhosak -Djkube.skip=true -Dversion.server.bom=25.0.0.Beta1-SNAPSHOT -Dversion.microprofile.bom=25.0.0.Beta1-SNAPSHOT
     - name: QS_USE_RHOSAK
       value: "1"
     - name: GC_MAX_METASPACE_SIZE

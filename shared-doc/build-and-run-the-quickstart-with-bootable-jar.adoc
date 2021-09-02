@@ -223,16 +223,27 @@ ifndef::reactive-messaging[]
 $ mvn oc:deploy -Pbootable-jar-openshift
 ----
 endif::[]
-ifdef::reactive-messaging[]
+//ifdef::reactive-messaging[]
 +
-a. If you are targeting AMQ Kafka supplied by AMQ Streams, use the following command:
+The exact command depends on which Kafka installation type you want to use:
+a. *AMQ Streams*
 +
 [source,subs="attributes+",options="nowrap"]
 ----
 $ mvn oc:deploy -Pbootable-jar-openshift,os-jar-amq-streams
 ----
-Note that the additional `os-jar-amq-streams` profile specified as an argument to Maven sets up the `MP_MESSAGING_CONNECTOR_SMALLRYE_KAFKA_BOOTSTRAP_SERVERS` environment to connect to the cluster we specified earlier.
-endif::[]
+Note that the additional `os-jar-amq-streams` profile specified as an argument to Maven sets up the `MP_MESSAGING_CONNECTOR_SMALLRYE_KAFKA_BOOTSTRAP_SERVERS` environment to connect to the cluster we specified earlier. This is shown in the pom.xml snippet above.
+b. *RHOSAK*
++
+First deploy the Helm chart to set up the
++
+[source,subs="attributes+",options="nowrap"]
+----
+$ mvn oc:deploy -Pbootable-jar-openshift,os-jar-rhosak
+----
+Note that the additional `os-jar-amq-streams` profile specified as an argument to Maven sets up the `MP_MESSAGING_CONNECTOR_SMALLRYE_KAFKA_BOOTSTRAP_SERVERS` environment to connect to the cluster we specified earlier. This is shown in the pom.xml snippet above.
+
+//endif::[]
 +
 // Bootable jar Deployment - END
 +

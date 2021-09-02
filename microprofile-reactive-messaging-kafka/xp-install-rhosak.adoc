@@ -1,3 +1,4 @@
+:rhosak-version: v1alpha1
 // Keeping this file in the reactive messaging quickstart for now (rather than ../shared-doc
 // since it will be quite application specific
 [[install_rhosak]]
@@ -54,7 +55,7 @@ To do so we create a service binding, with the YAML returned from the `rhoas clu
 
 [source,yaml]
 ----
-apiVersion: binding.operators.coreos.com/v1alpha1
+apiVersion: binding.operators.coreos.com/{rhosak-version}
 kind: ServiceBinding
 metadata:
   name: kafka-config

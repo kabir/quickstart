@@ -25,7 +25,7 @@ deploy:
       # Use the bootable-jar-openshift profile to ensure that the application
       # can be deployed on OpenShift but disable JKube as the image will be
       # built and deployed by this chart.
-      value: -am -pl microprofile-reactive-messaging-kafka -Pbootable-jar-openshift -Djkube.skip=true -Dversion.server.bom=24.0.0.Beta1 -Dversion.microprofile.bom=24.0.0.Beta1
+      value: -am -pl microprofile-reactive-messaging-kafka -Pbootable-jar-openshift -Djkube.skip=true -Dmaven.source.skip=true -Dversion.server.bom=24.0.0.Beta1 -Dversion.microprofile.bom=24.0.0.Beta1
     - name: QS_USE_RHOSAK
       value: "1"
     - name: GC_MAX_METASPACE_SIZE

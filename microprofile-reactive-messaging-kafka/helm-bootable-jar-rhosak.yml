@@ -11,6 +11,7 @@ build:
   #   oc import-image ubi8/openjdk-11 --from=registry.redhat.io/ubi8/openjdk-11 --confirm
   #   oc new-build --strategy source --binary --image-stream openjdk-11 --name reactive-messaging-qs
   #   oc start-build reactive-messaging-qs --from-dir target/openshift
+  #   oc set image-lookup reactive-messaging-qs
   #
   # Then we do the Helm install:
   #   helm install reactive-messaging-qs -f helm-bootable-jar-rhosak.yml wildfly/wildfly
@@ -20,6 +21,8 @@ build:
   contextDir: microprofile-reactive-messaging-kafka
   mode: bootable-jar
   env:
+  - name: ARTIFACT_DIR
+    value: microprofile-reactive-messaging-kafka/target
   - name: MAVEN_OPTS
     value: -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=256m
   - name: MAVEN_ARGS_APPEND
@@ -31,8 +34,6 @@ build:
 deploy:
   replicas: 1
   env:
-    - name: ARTIFACT_DIR
-      value: microprofile-reactive-messaging-kafka/target
     - name: QS_USE_RHOSAK
       value: "1"
     - name: GC_MAX_METASPACE_SIZE

@@ -328,6 +328,7 @@
             </build>
         </profile>
         <profile>
+            <!-- Extra parameters needed for AMQ Streams with bootable jar -->
             <id>os-jar-amq-streams</id>
             <build>
                 <plugins>
@@ -343,6 +344,66 @@
                                 </env>
                             </resources>
                         </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <!-- Extra parameters needed for RHOSAK with bootable jar -->
+            <id>os-jar-rhosak</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.wildfly.plugins</groupId>
+                        <artifactId>wildfly-jar-maven-plugin</artifactId>
+                        <version>${version.wildfly-jar.maven.plugin}</version>
+                        <configuration>
+                            <cli-sessions>
+                                <cli-session>
+                                    <!-- do not resolve expression as they reference env vars that -->
+                                    <!-- can be set at runtime -->
+                                    <resolve-expressions>false</resolve-expressions>
+                                    <script-files>
+                                        <script>src/main/scripts/bootable-jar/initialize-server.cli</script>
+                                    </script-files>
+                                </cli-session>
+                            </cli-sessions>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+
+        <!-- TEMPORARY STUFF FROM PARENT -->
+        <profile>
+            <!-- When built in OpenShift the 'openshift' profile will be
+                used when invoking mvn. -->
+            <!-- Use this profile for any OpenShift specific customization
+                your app will ne    ed. -->
+            <!-- By default that is to put the resulting archive into the
+                'deployments' folder. -->
+            <!-- http://maven.apache.org/guides/mini/guide-building-for-different-environments.html -->
+            <id>openshift</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-war-plugin</artifactId>
+                        <version>${version.war.plugin}</version>
+                        <configuration>
+                            <warName>ROOT</warName>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-source-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>attach-sources</id>
+                                <phase>none</phase>
+                            </execution>
+                        </executions>
                     </plugin>
                 </plugins>
             </build>

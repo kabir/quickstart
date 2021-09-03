@@ -1,2 +1,2 @@
-# This mounts the ../extensions directory for s2i
-S2I_IMAGE_SOURCE_MOUNTS=extensions
+# This mounts the ../src/main/scripts/s2i directory for s2i
+S2I_IMAGE_SOURCE_MOUNTS=src/main/scripts/s2i

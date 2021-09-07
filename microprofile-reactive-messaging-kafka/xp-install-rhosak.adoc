@@ -10,7 +10,11 @@ https://www.redhat.com/en/technologies/cloud-computing/openshift/openshift-strea
 We will summarize the steps required to set up a Kafka instance in RHOSAK here. They were correct at the time of writing and inspired by the following https://developers.redhat.com/developer-sandbox/activities/connecting-to-your-managed-kafka-instance[article] explaining how to set up an instance in the Developer Sandbox for Red Hat OpenShift, which allows you to try technologies on OpenShift for free. If these steps change, the RHOSAK documentation will have the up to date instructions. Finally, the steps below assume you are using the Developer Sandbox. If you are a paying customer of RHOSAK you should adjust the steps accordingly.
 
 *Prerequisites:*
-Create a https://developers.redhat.com/products/rhosak/getting-started[RHOSAK account] before doing the following steps:
+
+* On your OpenShift cluster make sure that the `RHOSAK` and `Service Binding Operator` operators are installed.
+** You can check this by going to Operators/Installed Operators in the Administrator perspective of the console
+** If not installed, install (or ask an admin if you don't have permissions) these operators via Operators/OperatorHub in the Administrator perspective of the console
+* Create a https://developers.redhat.com/products/rhosak/getting-started[RHOSAK account] before doing the following steps:
 
 1. From the https://developers.redhat.com/products/rhosak/getting-started[RHOSAK] console, create a Kafka instance. You need to specify a name for it Kafka instance, for example `my-quickstart-kafka`. In the rest of this text we will use `<kafka-name>` to represent `my-quickstart-kafka`. Apart from the name you can use default values for everything else. It will take a few minutes for your Kafka instance to be ready.
 2. Go into the instance and create a topic called `testing`. Use the suggested defaults for everything else.
@@ -46,44 +50,6 @@ Execute
 ----
 rhoas cluster connect --token {your token pasted here}
 ----
-This will return some YAML which we will use in the next step. Behind the scenes this authenticates your OpenShift project to work with the RHOSAK Kafka instance, and creates objects containing the configuration to connect to Kafka. These were referenced by the `mp-rm-rhosak-properties.yml` we applied a moment ago.
+This will tell you to run `rhoas cluster bind`. However, we need to wait until we have deployed our application with `helm install` in the next step. Once we run `rhoas cluster bind` when we deploy our application, this will create a config map bound to the `/bindings/kafka-config` directory in the application pods.
 
-We need to create a `ServiceBinding` to bind the `KafkaConnection` (that represents the Kafka instance) in our application.
-
-To do so we create a service binding, with the YAML returned from the `rhoas cluster connect` command:
-
-[source,yaml]
-----
-apiVersion: binding.operators.coreos.com/v1alpha1
-kind: ServiceBinding
-metadata:
-  name: kafka-config
-  namespace: <project-name>
-spec:
-  application:
-    group: apps
-    name: name-of-your-application
-    resource: deployments
-    version: v1
-
-  bindAsFiles: true
-  services:
-  - group: rhoas.redhat.com
-    version: v1alpha1
-    kind: KafkaConnection
-    name: <kafka-name>
-----
-In your actual returned YAML, the `<project-name>` and `<kafka-name>` placeholders will contain the correct values for your OpenShift project, and Kafka instance.
-
-NOTE: You need to replace `name-of-your-application` with `reactive-messaging-qs`, which is the name we will use when creating the application later.
-
-Save this adjusted output to `rhosak-binding.yaml`, and apply this service binding to your OpenShift cluster with:
-
-[source]
-----
-oc apply -f ./rhosak-binding.yaml
-----
-
-When we deploy our application, this will create a config map bound to the `/bindings/rhosak-bindings` directory in the application pods.
-
-The `extensions/initialize-server.cli` script will get run as part of initialising the application pod, and adds the mentioned `/bindings/rhosak-bindings` and `/etc/config/reactive-messaging-properties` folders as config sources in the `microprofile-config-smallrye` subsystem. This CLI script only gets added if we pass in the environment variable `QS_USE_RHOSAK=1` when starting the application.
+The `extensions/initialize-server.cli` script will get run as part of initialising the application pod, and adds the mentioned `/bindings/kafka-config` and `/etc/config/reactive-messaging-properties` folders as config sources in the `microprofile-config-smallrye` subsystem. This CLI script only gets added if we pass in the environment variable `QS_USE_RHOSAK=1` when starting the application. (For the bootable jar with RHOSAK combination there is a `src/main/scripts/bootable-jar/initialise-server.cli` script that does the same).

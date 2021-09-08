@@ -194,6 +194,31 @@ ifdef::reactive-messaging[]
               </plugins>
           </build>
       </profile>
+      <profile>
+          <!-- Extra parameters needed for RHOSAK with bootable jar -->
+          <id>os-jar-rhosak</id>
+          <build>
+              <plugins>
+                  <plugin>
+                      <groupId>org.wildfly.plugins</groupId>
+                      <artifactId>wildfly-jar-maven-plugin</artifactId>
+                      <version>${version.wildfly-jar.maven.plugin}</version>
+                      <configuration>
+                          <cli-sessions>
+                              <cli-session>
+                                  <!-- do not resolve expression as they reference env vars that -->
+                                  <!-- can be set at runtime -->
+                                  <resolve-expressions>false</resolve-expressions>
+                                  <script-files>
+                                      <script>src/main/scripts/bootable-jar/initialize-server.cli</script>
+                                  </script-files>
+                              </cli-session>
+                          </cli-sessions>
+                      </configuration>
+                  </plugin>
+              </plugins>
+          </build>
+      </profile>
 endif::[]
 ----
 .Procedure
@@ -210,7 +235,7 @@ ifdef::reactive-messaging[]
 . Depending on which kind of Kafka you would like:
 
  a. Install AMQ Streams into the `bootable-jar-project` OpenShift project as outlined link:#install_amq_streams[earlier]  in this quickstart. Note that the `MP_MESSAGING_CONNECTOR_SMALLRYE_KAFKA_BOOTSTRAP_SERVERS` environment variable in the `os-jar-amq-streams` profile in the pom.xml assume you have used the indicated name `my-cluster` for your AMQ Streams cluster.
- b. Set up a Kafka instance on RHOSAK, and connect it to the `reactive-messaging-qs ` application as outlined link:#install_rhosak[earlier]  in this quickstart.
+ b. Set up a Kafka instance on RHOSAK, and connect it to the `reactive-messaging-qs ` application as outlined link:#install_rhosak[earlier]  in this quickstart. The `os-jar-rhosak` profile triggers running the `src/main/scripts/bootable-jar/initialize-server.cli` when preparing the bootable jar, so that the config map and service binding become part of the configuration provided by the `microprofile-config-smallrye` subsystem.
 
 endif::[]
 . Build the quickstart bootable JAR by issuing the following command. This command also completes the following tasks: creates the OpenShift deployment, service and route; generates a docker image and pushes the docker image to OpenShift; and runs the application.
@@ -225,7 +250,7 @@ $ mvn oc:deploy -Pbootable-jar-openshift
 endif::[]
 ifdef::reactive-messaging[]
 +
-a. If you are targeting AMQ Kafka supplied by AMQ Streams, use the following command:
+a. If you are targeting Kafka supplied by AMQ Streams, use the following command:
 +
 [source,subs="attributes+",options="nowrap"]
 ----

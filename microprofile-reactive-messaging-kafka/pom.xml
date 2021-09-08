@@ -364,7 +364,7 @@
                                     <!-- can be set at runtime -->
                                     <resolve-expressions>false</resolve-expressions>
                                     <script-files>
-                                        <script>src/main/scripts/bootable-jar/initialize-server.cli</script>
+                                        <script>src/main/scripts/rhosak/bootable-jar/initialize-server.cli</script>
                                     </script-files>
                                 </cli-session>
                             </cli-sessions>

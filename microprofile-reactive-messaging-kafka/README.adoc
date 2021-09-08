@@ -977,7 +977,7 @@ Kafka on OpenShift is provided by either:
 * <<install_amq_streams,AMQ Streams>>
 * <<install_rhosak,RHOSAK>>
 
-For the purposes of this Quickstart you should only select one of these, and your choice should match what we will do later in <<deploy-to-openshift, Deploy the {ProductShortName} Source-to-Image (S2I) Quickstart to OpenShift>>.
+NOTE: For the purposes of this Quickstart you should only select one of these, and your choice should match what we will do later in <<deploy-to-openshift, Deploy the {ProductShortName} Source-to-Image (S2I) Quickstart to OpenShift>>.
 
 // Install AMQ Streams
 include::../shared-doc/xp-install-amq-streams.adoc[leveloffset=+3]
@@ -993,7 +993,7 @@ The sub-sections describe how to deploy the application to OpenShift interacting
 * <<xp-deploy-project-amq-streams,AMQ Streams>>
 * <<xp-deploy-project-rhosak,RHOSAK>>
 
-For the purposes of this Quickstart, you should choose one of these approaches, not both. Your choice should match the type of Kafka instance you selected earlier in <<installing-kafka-on-openshift, Installing Kafka on OpenShift>>.
+NOTE: For the purposes of this Quickstart, you should choose one of these approaches, not both. Your choice should match the type of Kafka instance you selected earlier in <<installing-kafka-on-openshift, Installing Kafka on OpenShift>>.
 
 [[xp-deploy-project-amq-streams]]
 === Deploy the {ProductShortName} Source-to-Image (S2I) Quickstart to OpenShift with AMQ Streams

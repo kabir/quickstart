@@ -48,7 +48,7 @@ Then go to https://console.redhat.com/openshift/token and get the token to authe
 
 Execute
 ----
-rhoas cluster connect --token {your token pasted here}
+rhoas cluster connect --yes --token {your token pasted here}
 ----
 This will tell you to run `rhoas cluster bind`. However, we need to wait until we have deployed our application with `helm install` in the next step. Once we run `rhoas cluster bind` after  deploying our application, this will create a config map bound to the `/bindings/kafka-config` directory in the application pods.
 

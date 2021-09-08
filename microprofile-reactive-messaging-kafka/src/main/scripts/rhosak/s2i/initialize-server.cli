@@ -4,7 +4,9 @@ set serverConfig=${serverConfig}
 embed-server --std-out=echo  --server-config=$serverConfig
 
 echo "Adding config sources..."
+# From the 'reactive-messaging-properties' ConfigMap
 /subsystem=microprofile-config-smallrye/config-source=reactive-messaging-properties:add(dir={path=/etc/config/reactive-messaging-properties})
+# From the 'kafka-config' service binding
 /subsystem=microprofile-config-smallrye/config-source=rhosak-binding:add(dir={path=/bindings/kafka-config})
 
 

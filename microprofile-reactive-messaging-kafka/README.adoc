@@ -1053,10 +1053,12 @@ helm install reactive-messaging-qs -f ./helm-rhosak.yml wildfly/wildfly
 ----
 The CLI command will complete fast, and after a few minutes you should see a pod for the application appear on OpenShift. Its logs will contain the output we have seen earlier.
 
-While the OpenShift cluster is doing the work to build and deploy the application (i.e. as soon as the `helm install` has completed in your terminal), run the following command to set up the ConfigMap from the Kafka connection as mentioned earlier:
+While the OpenShift cluster is doing the work to build and deploy the application (i.e. as soon as the `helm install` has completed in your terminal), run the following command to set up the service binding for the Kafka connection as mentioned earlier:
 ----
 rhoas cluster bind --app-name reactive-messaging-qs  --binding-name kafka-config
 ----
+
+You may also wait performing the above command until the application pod has been brought up. In this case it will log errors that it is not able to connect to Kafka. Once the above command is run, the 'faulty' pod will be taken down and replaced by one containing the correct configuration.
 
 // TODO might not be needed once we move both AMQ Streams and RHOSAK to Helm? I can see a route in the config
 

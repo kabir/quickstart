@@ -328,27 +328,6 @@
             </build>
         </profile>
         <profile>
-            <!-- Extra parameters needed for AMQ Streams with bootable jar -->
-            <id>os-jar-amq-streams</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.eclipse.jkube</groupId>
-                        <artifactId>openshift-maven-plugin</artifactId>
-                        <version>${version.jkube.maven.plugin}</version>
-                        <configuration>
-                            <resources>
-                                <env>
-                                    <!-- Set the AMQ Streams URL to what is set up by the instructions -->
-                                    <MP_MESSAGING_CONNECTOR_SMALLRYE_KAFKA_BOOTSTRAP_SERVERS>my-cluster-kafka-bootstrap:9092</MP_MESSAGING_CONNECTOR_SMALLRYE_KAFKA_BOOTSTRAP_SERVERS>
-                                </env>
-                            </resources>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-        <profile>
             <!-- Extra parameters needed for RHOSAK with bootable jar -->
             <id>os-jar-rhosak</id>
             <build>

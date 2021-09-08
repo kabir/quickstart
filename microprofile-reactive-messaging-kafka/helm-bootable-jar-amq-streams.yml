@@ -9,9 +9,9 @@ build:
   #   mvn package -Popenshift,bootable-jar-openshift,os-jar-amq-streams
   #   mkdir target/openshift && cp target/microprofile-reactive-messaging-kafka-bootable.jar target/openshift
   #   oc import-image ubi8/openjdk-11 --from=registry.redhat.io/ubi8/openjdk-11 --confirm
-  #   oc new-build --strategy source --binary --image-stream openjdk-11 --name reactive-messaging-qs-amq-streams
-  #   oc start-build reactive-messaging-qs-amq-streams --from-dir target/openshift
-  #   oc set image-lookup reactive-messaging-qs-amq-streams
+  #   oc new-build --strategy source --binary --image-stream openjdk-11 --name reactive-messaging-qs
+  #   oc start-build reactive-messaging-qs --from-dir target/openshift
+  #   oc set image-lookup reactive-messaging-qs
   #
   # Then we do the Helm install:
   #   helm install reactive-messaging-qs -f helm-bootable-jar-amq-streams.yml wildfly/wildfly

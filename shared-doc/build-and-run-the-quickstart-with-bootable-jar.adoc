@@ -234,7 +234,7 @@ $ oc new-project bootable-jar-project
 ifdef::reactive-messaging[]
 . Depending on which kind of Kafka you would like:
  a. Install AMQ Streams into the `bootable-jar-project` OpenShift project as outlined link:#install_amq_streams[earlier]  in this quickstart. Note that the `MP_MESSAGING_CONNECTOR_SMALLRYE_KAFKA_BOOTSTRAP_SERVERS` environment variable in the `os-jar-amq-streams` profile in the pom.xml assume you have used the indicated name `my-cluster` for your AMQ Streams cluster.
- b. Set up a Kafka instance on RHOSAK, and connect it to the `reactive-messaging-qs ` application as outlined link:#install_rhosak[earlier]  in this quickstart. The `os-jar-rhosak` profile triggers running the `src/main/scripts/bootable-jar/initialize-server.cli` when preparing the bootable jar, so that the config map and service binding become part of the configuration provided by the `microprofile-config-smallrye` subsystem.
+ b. Set up a Kafka instance on RHOSAK, and connect it to the `reactive-messaging-qs` application as outlined link:#install_rhosak[earlier]  in this quickstart. The `os-jar-rhosak` profile in the pom.xml triggers running the `src/main/scripts/bootable-jar/initialize-server.cli` when preparing the bootable jar, so that the config map and service binding become part of the configuration provided by the `microprofile-config-smallrye` subsystem.
 endif::[]
 . Build the quickstart bootable JAR by issuing the following command. This command also completes the following tasks: creates the OpenShift deployment, service and route; generates a docker image and pushes the docker image to OpenShift; and runs the application.
 +
@@ -247,7 +247,7 @@ $ mvn oc:deploy -Pbootable-jar-openshift
 ----
 endif::[]
 ifdef::reactive-messaging[]
-The commmand to deploy the application is slightly different depending on which Kafka installation you want to target:
+The command to deploy the application is slightly different depending on which Kafka installation you want to target:
 
 a. If you are targeting Kafka supplied by AMQ Streams, use the following command:
 +
@@ -257,14 +257,29 @@ $ mvn oc:deploy -Pbootable-jar-openshift,os-jar-amq-streams
 ----
 +
 The additional `os-jar-amq-streams` profile specified as an argument to Maven sets up the `MP_MESSAGING_CONNECTOR_SMALLRYE_KAFKA_BOOTSTRAP_SERVERS` environment to connect to the cluster we specified earlier.
-b. If you are targetting Kafka supplied by RHOSAK, use the following command:
+b. If you are targetting Kafka supplied by RHOSAK, use the following commands.
++
+First add the Helm repository:
+// TODO needs a diff commit to differentiate between EAP and Wildfly
++
+[source,subs="attributes+",options="nowrap"]
+----
+helm repo add wildfly http://docs.wildfly.org/wildfly-charts/
+----
++
+Then install our application:
 +
 [source,subs="attributes+",options="nowrap"]
 ----
 $ helm install reactive-messaging-qs -f ./helm-bootable-jar-rhosak.yml wildfly/wildfly
 ----
 +
-Once the CLI returns, remember to bind the RHOSAK Kafka connection so that
+Once the CLI returns, remember to bind the RHOSAK Kafka connection so the service binding is available and the `/bindings/kafka-config` directory gets created on the application pod:
++
+[source,subs="attributes+",options="nowrap"]
+----
+rhoas cluster bind --app-name reactive-messaging-qs  --binding-name kafka-config --yes
+----
 
 endif::[]
 +

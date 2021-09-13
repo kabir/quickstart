@@ -30,6 +30,7 @@ ifdef::ProductRelease[]
 :DocInfoProductNumber: {productVersion}
 :WildFlyQuickStartRepoTag: EAP_7.4.0.GA
 :productImageVersion: 7.4.0
+:helmChartName: jboss-eap/eap74
 endif::[]
 
 ifdef::EAPXPRelease[]
@@ -40,10 +41,12 @@ ifdef::EAPXPRelease[]
 :DocInfoProductNumber: 7.4
 :WildFlyQuickStartRepoTag: XP_3.0.0.GA
 :productImageVersion: 3.0
+:helmChartName: jboss-eap/eap-xp3
 endif::[]
 
 ifdef::ProductRelease,EAPXPRelease[]
 :githubRepoUrl: https://github.com/jboss-developer/jboss-eap-quickstarts/
+:githubCloneUrl: https://github.com/jboss-developer/jboss-eap-quickstarts.git
 :jbossHomeName: EAP_HOME
 :DocInfoProductName: Red Hat JBoss Enterprise Application Platform
 :DocInfoProductNameURL: red_hat_jboss_enterprise_application_platform
@@ -61,12 +64,14 @@ ifndef::ProductRelease,EAPCDRelease,EAPXPRelease[]
 :productVersion: 24
 :productImageVersion: 24.0
 :githubRepoUrl: https://github.com/wildfly/quickstart/
+:githubCloneUrl: https://github.com/wildfly/quickstart.git
 :WildFlyQuickStartRepoTag: 24.0.0.Final
 :DocInfoProductName: Red Hat JBoss Enterprise Application Platform
 :DocInfoProductNameURL: red_hat_jboss_enterprise_application_platform
 // Do not update the following until after the 7.4 docs are published!
 :DocInfoProductNumber: 7.3
 :DocInfoPreviousProductName: jboss-enterprise-application-platform
+:helmChartName: wildfly/wildfly
 // END ifndef::ProductRelease,EAPCDRelease,EAPXPRelease[]
 endif::[]
 

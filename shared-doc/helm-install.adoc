@@ -1,0 +1,103 @@
+//******************************************************************************
+// Include this template if your quickstart wants to install on OpenShift
+// via Helm
+//
+// * To override the application name, which defaults to the {artifactId),
+//   define the `helmAppName` variable, for example:
+//    :helmAppName: {artifactId}-service
+//   This is used as the name of the application in the `helm install` command.
+//
+// * To add `build/s2i/galleonLayers` to the yaml, define the `helmS2iGalleonLayers`
+//   variable. This will in turn enable the parent `build/s2i` level. For example:
+//    :helmS2iGalleonLayers: TODO
+//
+// * By default, the generated Helm chart will default to one replica under
+//   `deploy/replicas`. Override this by defining the `helmDeployReplicas`
+//   variable. For example:
+//    :helmDeployReplicas: 3
+//******************************************************************************
+
+// The archive name defaults to the artifactId if not overridden
+ifndef::helmAppName[]
+:helmAppName: {artifactId}
+endif::helmAppName[]
+
+// =================================================
+// ======== helm-needs-build-s2i - START ===========
+//
+// helm-needs-build-s2i enables the build/s2i part of the yaml. Whether that
+// happens depends on if one of the sub-elements is needed
+ifdef::helmS2iGalleonLayers[]
+:helmNeedsBuildS2i: true
+endif::helmS2iGalleonLayers[]
+// Add more, as needed, to set helm-needs-build-s2i
+//
+// ======== helm-needs-build-s2i - END  ============
+// =================================================
+
+// Number of replicas to deploy defaults to 1
+ifndef::helmDeployReplicas[]
+:helmDeployReplicas: 1
+endif::helmDeployReplicas[]
+
+First make sure the Helm repository is installed in your Openshift instance. If not you can do this via the OpenShift console.
+TODO - FIGURE OUT HOW TO DO THIS, and differentiate between WildFly and EAP
+//Can also do via command-line.
+//For EAP it is:
+//helm repo add jboss-eap https://jbossas.github.io/eap-charts/
+//For WildFly it is:
+//helm repo add wildfly http://docs.wildfly.org/wildfly-charts/
+
+Run the following command to build and deploy your application:
+[source,yaml,subs="+attributes"]
+----
+helm install {helmAppName} {wildfly/wildfly} -f - <<EOF
+build:
+  uri: {githubCloneUrl}
+  contextDir: {artifactId}
+  ref: {WildFlyQuickStartRepoTag}
+ifdef::helmNeedsBuildS2i[]
+  s2i:
+ifdef::helmS2iGalleonLayers[]
+    galleonLayers:
+{helmS2iGalleonLayers}
+endif::helmS2iGalleonLayers[]
+ifdef::helmBuildEnv[]
+  env:
+{helmBuildEnv}
+endif::helmBuildEnv[]
+endif::helmNeedsBuildS2i[]
+deploy:
+  replicas: {helm-deploy-replicas
+ifdef::helmDeployEnv[]
+  env:
+{helmDeployEnv}
+endif::helmDeployEnv[]
+ifdef::helmDeployVolumeMounts[]
+  volumeMounts:
+{helmDeployVolumeMounts}
+endif::helmDeployVolumeMounts[]
+ifdef::helmDeployVolumes[]
+  volumes:
+{helmDeployVolumes}
+endif::helmDeployVolumes[]
+EOF
+----
+
+NOTE: Although the above command will return quite quickly, it will take a while until the application pod is actually brought up. In the OpenShift console you will see a pod whose name starts with {hemAppName} in the `ErrImagePull` or `ImagePullBackoff` state until the build has completed.
+
+Looking at the contents of the yaml above, we have a few top-level elements.
+
+The first is the `build` element which controls how the quickstart is built with S2I. It contains the following children:
+
+* `build/uri` - this is the URL of the Quickstart repository.
+* `build/contextDir` - the directory containing this quickstart within the above repository.
+* `build/ref` - the tag within the above repository we will build the Quickstart from.
+ifdef::helmS2iGalleonLayers[]
+* `build/s2i/galleonLayers` - this defines the Galleon layers to use when building the server. In our case we are using a non-standard set of layers, so we needed to specify these here.
+endif::helmS2iGalleonLayers[]
+ifdef::helmBuildEnvDocs[]
+{helmBuildEnvDocs}
+endif::helmBuildEnvDocs[]
+
+// TODO volumeMounts and volumes

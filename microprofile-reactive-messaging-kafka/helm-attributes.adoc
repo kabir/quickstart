@@ -1,0 +1,19 @@
+tag::galleonLayers[]
+    - cloud-server
+    - h2-default-datasource
+    - microprofile-reactive-messaging-kafka
+end::galleonLayers[]
+
+tag::amqBuildEnv[]
+  - name: MAVEN_OPTS
+  value: -XX:MetaspaceSize=256m -XX:MaxMetaspaceSize=256m
+end::amqBuildEnv[]
+
+tag::amqDeployEnv[]
+  - name: MP_MESSAGING_CONNECTOR_SMALLRYE_KAFKA_BOOTSTRAP_SERVERS
+    value: my-cluster-kafka-bootstrap:9092
+  - name: GC_MAX_METASPACE_SIZE
+    value: "256"
+  - name: GC_METASPACE_SIZE
+    value: "96"
+end::amqDeployEnv[]

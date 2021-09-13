@@ -1,20 +1,39 @@
 //******************************************************************************
 // Include this template if your quickstart wants to install on OpenShift
-// via Helm
+// via Helm.
+// Some attributes are substituted directly into the below placeholder yaml,
+// and other instructions in this document. They are:
 //
 // * To override the application name, which defaults to the {artifactId),
 //   define the `helmAppName` variable, for example:
 //    :helmAppName: {artifactId}-service
 //   This is used as the name of the application in the `helm install` command.
 //
-// * To add `build/s2i/galleonLayers` to the yaml, define the `helmS2iGalleonLayers`
-//   variable. This will in turn enable the parent `build/s2i` level. For example:
-//    :helmS2iGalleonLayers: TODO
-//
 // * By default, the generated Helm chart will default to one replica under
 //   `deploy/replicas`. Override this by defining the `helmDeployReplicas`
 //   variable. For example:
 //    :helmDeployReplicas: 3
+//
+// The second set of attributes include a file, and named tagged regions
+// (see https://docs.asciidoctor.org/asciidoc/latest/directives/include-tagged-regions/).
+// These are:
+//
+// * `helmAttributesIncludeFile` - This is the name of the file containing the
+//  tagged regions that will be included. Note this is relative to THIS file.
+//
+// * `helmS2iGalleonLayersTag` - If present this specifies the tagged region in
+//  `helmAttributesIncludeFile` specifying the layers Galleon layers under
+//  `build/s2i/galleonLayers` in the yaml.
+//
+// * `helmBuildEnvTag` - if present this specifies the tagged region in
+//  `helmAttributesIncludeFile` specifying environment variables needed when doing the
+//  build. These will be put under `build/env` in the yaml.
+//
+//
+// * `helmDeployEnvTag` - if present this specifies the tagged region in
+//  `helmAttributesIncludeFile` specifying environment variables needed by the
+//  deployment. These will be put under `deploy/env` in the yaml.
+//
 //******************************************************************************
 
 // The archive name defaults to the artifactId if not overridden
@@ -27,9 +46,9 @@ endif::helmAppName[]
 //
 // helm-needs-build-s2i enables the build/s2i part of the yaml. Whether that
 // happens depends on if one of the sub-elements is needed
-ifdef::helmS2iGalleonLayers[]
+ifdef::helmS2iGalleonLayersTag[]
 :helmNeedsBuildS2i: true
-endif::helmS2iGalleonLayers[]
+endif::helmS2iGalleonLayersTag[]
 // Add more, as needed, to set helm-needs-build-s2i
 //
 // ======== helm-needs-build-s2i - END  ============
@@ -39,6 +58,12 @@ endif::helmS2iGalleonLayers[]
 ifndef::helmDeployReplicas[]
 :helmDeployReplicas: 1
 endif::helmDeployReplicas[]
+
+
+// =================================================
+// Main contents
+// =================================================
+To deploy your application, make sure you have downloaded the https://docs.openshift.com/container-platform/4.8/cli_reference/helm_cli/getting-started-with-helm-on-openshift-container-platform.html[Helm CLI Tool].
 
 First make sure the Helm repository is installed in your Openshift instance. If not you can do this via the OpenShift console.
 TODO - FIGURE OUT HOW TO DO THIS, and differentiate between WildFly and EAP
@@ -58,21 +83,21 @@ build:
   ref: {WildFlyQuickStartRepoTag}
 ifdef::helmNeedsBuildS2i[]
   s2i:
-ifdef::helmS2iGalleonLayers[]
+ifdef::helmS2iGalleonLayersTag[]
     galleonLayers:
-{helmS2iGalleonLayers}
-endif::helmS2iGalleonLayers[]
-ifdef::helmBuildEnv[]
+include::{helmAttributesIncludeFile}[tag={helmS2iGalleonLayersTag}]
+endif::helmS2iGalleonLayersTag[]
+ifdef::helmBuildEnvTag[]
   env:
-{helmBuildEnv}
-endif::helmBuildEnv[]
+include::{helmAttributesIncludeFile}[tag={helmBuildEnvTag}]
+endif::helmBuildEnvTag[]
 endif::helmNeedsBuildS2i[]
 deploy:
-  replicas: {helm-deploy-replicas
-ifdef::helmDeployEnv[]
+  replicas: {helmDeployReplicas}
+ifdef::helmDeployEnvTag[]
   env:
-{helmDeployEnv}
-endif::helmDeployEnv[]
+include::{helmAttributesIncludeFile}[tag={helmDeployEnvTag}]
+endif::helmDeployEnvTag[]
 ifdef::helmDeployVolumeMounts[]
   volumeMounts:
 {helmDeployVolumeMounts}
@@ -93,9 +118,9 @@ The first is the `build` element which controls how the quickstart is built with
 * `build/uri` - this is the URL of the Quickstart repository.
 * `build/contextDir` - the directory containing this quickstart within the above repository.
 * `build/ref` - the tag within the above repository we will build the Quickstart from.
-ifdef::helmS2iGalleonLayers[]
+ifdef::helmS2iGalleonLayersTag[]
 * `build/s2i/galleonLayers` - this defines the Galleon layers to use when building the server. In our case we are using a non-standard set of layers, so we needed to specify these here.
-endif::helmS2iGalleonLayers[]
+endif::helmS2iGalleonLayersTag[]
 ifdef::helmBuildEnvDocs[]
 {helmBuildEnvDocs}
 endif::helmBuildEnvDocs[]

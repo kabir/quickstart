@@ -15,7 +15,6 @@ The `microprofile-reactive-messaging-kafka` quickstart demonstrates the use of t
 :custom-bootable-jar-layers:
 :uses-h2:
 
-
 == What is it?
 
 link:https://microprofile.io/project/eclipse/microprofile-reactive-messaging[MicroProfile Reactive Messaging] is a framework for building event-driven, data streaming, and event-sourcing applications using CDI. It lets your application interact using messaging technologies such as link:https://kafka.apache.org[Apache Kafka].
@@ -1012,18 +1011,24 @@ TODO: Add description of helm-rhosak.yml
 First add the Helm repository:
 // TODO needs a diff commit to differentiate between EAP and Wildfly
 
-[source,subs="attributes+",options="nowrap"]
-----
-helm repo add wildfly http://docs.wildfly.org/wildfly-charts/
-----
 
-Then run the following command to deploy and start the application (note we are using the name `reactive-messaging-qs` for our application here:
-// TODO needs a diff commit to differentiate between EAP and Wildfly
-
-[source,subs="attributes+",options="nowrap"]
-----
-helm install reactive-messaging-qs -f ./helm-amq-streams.yml wildfly/wildfly
-----
+:helmAttributesIncludeFile: ../microprofile-reactive-messaging-kafka/helm-attributes.adoc
+:helmS2iGalleonLayersTag: galleonLayers
+:helmBuildEnvTag: amqBuildEnv
+:helmDeployEnvTag: amqDeployEnv
+include::../shared-doc/helm-install.adoc[]
+//[source,subs="attributes+",options="nowrap"]
+//----
+//helm repo add wildfly http://docs.wildfly.org/wildfly-charts/
+//----
+//
+//Then run the following command to deploy and start the application (note we are using the name `reactive-messaging-qs` for our application here:
+//// TODO needs a diff commit to differentiate between EAP and Wildfly
+//
+//[source,subs="attributes+",options="nowrap"]
+//----
+//helm install reactive-messaging-qs -f ./helm-amq-streams.yml wildfly/wildfly
+//----
 
 [[xp-deploy-project-rhosak]]
 === Deploy the {ProductShortName} Source-to-Image (S2I) Quickstart to OpenShift with RHOSAK

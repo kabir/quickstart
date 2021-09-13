@@ -17,9 +17,9 @@ build:
 deploy:
   replicas: 1
   env:
-    - name: MP_MESSAGING_CONNECTOR_SMALLRYE_KAFKA_BOOTSTRAP_SERVERS
-      value: my-cluster-kafka-bootstrap:9092
-    - name: GC_MAX_METASPACE_SIZE
-      value: "256"
-    - name: GC_METASPACE_SIZE
-      value: "96"
+  - name: MP_MESSAGING_CONNECTOR_SMALLRYE_KAFKA_BOOTSTRAP_SERVERS
+    value: my-cluster-kafka-bootstrap:9092
+  - name: GC_MAX_METASPACE_SIZE
+    value: "256"
+  - name: GC_METASPACE_SIZE
+    value: "96"

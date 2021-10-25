@@ -43,20 +43,20 @@ import org.jboss.arquillian.container.test.api.RunAsClient;
 import org.jboss.arquillian.junit.Arquillian;
 import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.as.arquillian.api.ServerSetup;
-import org.wildfly.quickstarts.microprofile.reactive.messaging.MessagingBean;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.wildfly.quickstarts.microprofile.reactive.messaging.UserMessagingBean;
 
 /**
  * @author <a href="mailto:kabir.khan@jboss.com">Kabir Khan</a>
  */
 @RunWith(Arquillian.class)
 @RunAsClient
-@ServerSetup({RunKafkaSetupTask.class, EnableReactiveExtensionsSetupTask.class})
+@ServerSetup({/*RunKafkaSetupTask.class, */EnableReactiveExtensionsSetupTask.class})
 public class ReactiveMessagingKafkaIT {
 
     @ArquillianResource
@@ -72,9 +72,7 @@ public class ReactiveMessagingKafkaIT {
     public static WebArchive getDeployment() {
         final WebArchive webArchive = ShrinkWrap.create(WebArchive.class, "reactive-messaging-kafka-tx.war")
                 .addAsWebInfResource(EmptyAsset.INSTANCE, "beans.xml")
-                .addPackage(MessagingBean.class.getPackage())
-                .addAsWebInfResource("META-INF/persistence.xml", "classes/META-INF/persistence.xml")
-                .addAsWebInfResource("META-INF/microprofile-config.properties", "classes/META-INF/microprofile-config.properties");
+                .addPackage(UserMessagingBean.class.getPackage());
 
         return webArchive;
     }

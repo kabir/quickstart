@@ -84,7 +84,7 @@ public class ReactiveMessagingKafkaIT {
         HttpGet httpGet = new HttpGet(url.toExternalForm());
         long end = System.currentTimeMillis() + TIMEOUT;
         boolean done = false;
-        while (!done) {
+        while (!done && System.currentTimeMillis() < end) {
             try (CloseableHttpResponse httpResponse = httpClient.execute(httpGet)) {
                 done = checkResponse(httpResponse, System.currentTimeMillis() > end);
                 Thread.sleep(1000);

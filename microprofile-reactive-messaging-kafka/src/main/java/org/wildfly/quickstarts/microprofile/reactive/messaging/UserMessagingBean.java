@@ -41,11 +41,13 @@ public class UserMessagingBean {
     public UserMessagingBean() {
         //Needed for CDI spec compliance
         //The @Inject annotated one will be used
+        System.out.println("-----> Default ctor");
     }
 
     @Inject
     public UserMessagingBean(@Channel("user") Publisher<String> receiver) {
         this.broadcastPublisher = new BroadcastPublisher(receiver);
+        System.out.println("-----> Inject ctor " + receiver);
     }
 
     @PreDestroy
@@ -73,17 +75,28 @@ public class UserMessagingBean {
             publisher.subscribe(new Subscriber() {
                 @Override
                 public void onSubscribe(Subscription subscription) {
-                    baseSubscription = subscription;
-                    subscription.request(1);
+                    try {
+                        System.out.println("--- Subscribing...");
+                        baseSubscription = subscription;
+                        subscription.request(1);
+                        System.out.println("--- Subscribed!");
+                    } catch (Throwable e) {
+                        e.printStackTrace();
+                    }
                 }
 
                 @Override
                 public void onNext(Object o) {
-                    System.out.println("Received " + o + " - forwarding it to all the subscribers");
-                    for (Subscriber s : subscribers) {
-                        s.onNext(o);
+                    try {
+                        System.out.println("Received " + o + " - forwarding it to all the subscribers");
+                        for (Subscriber s : subscribers) {
+                            s.onNext(o);
+                        }
+                        baseSubscription.request(1);
+                        System.out.println("--- Receive done");
+                    } catch (Throwable e) {
+                        e.printStackTrace();
                     }
-                    baseSubscription.request(1);
                 }
 
                 @Override
@@ -106,20 +119,26 @@ public class UserMessagingBean {
 
         @Override
         public void subscribe(Subscriber<? super T> subscriber) {
-            subscribers.add(subscriber);
-            subscriber.onSubscribe(new Subscription() {
-                @Override
-                public void request(long l) {
-                    if (l != 1) {
-                        throw new IllegalArgumentException("You can only request one entry. Instead you requested " + l);
+            try {
+                System.out.println("Subscribing client");
+                subscribers.add(subscriber);
+                subscriber.onSubscribe(new Subscription() {
+                    @Override
+                    public void request(long l) {
+                        if (l != 1) {
+                            throw new IllegalArgumentException("You can only request one entry. Instead you requested " + l);
+                        }
                     }
-                }
 
-                @Override
-                public void cancel() {
-                    subscribers.remove(subscriber);
-                }
-            });
+                    @Override
+                    public void cancel() {
+                        subscribers.remove(subscriber);
+                    }
+                });
+                System.out.println("Subscribed client!");
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
         }
 
         void close() {

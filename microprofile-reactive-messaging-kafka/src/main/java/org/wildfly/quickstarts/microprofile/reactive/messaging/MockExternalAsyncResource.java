@@ -39,7 +39,8 @@ import javax.enterprise.context.ApplicationScoped;
  */
 @ApplicationScoped
 public class MockExternalAsyncResource {
-    private static final int TICK = 2000;
+    // TODO - set back to 2000
+    private static final int TICK = 200000;
 
     private final String[] values = new String[]{
             "Hello",

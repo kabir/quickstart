@@ -16,7 +16,6 @@
  */
 package org.wildfly.quickstarts.microprofile.reactive.messaging;
 
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -29,16 +28,20 @@ import javax.ws.rs.core.Response;
 import org.jboss.resteasy.annotations.Stream;
 import org.reactivestreams.Publisher;
 
-@ApplicationScoped
 @Path("/user")
 @Produces(MediaType.TEXT_PLAIN)
 public class UserResource {
     @Inject
     UserMessagingBean bean;
 
+    public UserResource() {
+        System.out.println("===> UR ctor " + this);
+    }
+
     @POST
     @Path("{value}")
     public Response send(@PathParam("value") String value) {
+        System.out.println(" -> User value " + value);
         bean.send(value);
         return Response.ok().build();
     }
@@ -46,6 +49,7 @@ public class UserResource {
     @GET
     @Stream
     public Publisher<String> get() {
+        System.out.println("===> UR GET " + this);
         return bean.getPublisher();
     }
 }

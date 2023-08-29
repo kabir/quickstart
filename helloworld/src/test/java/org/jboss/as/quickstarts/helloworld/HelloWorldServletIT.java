@@ -15,8 +15,10 @@
  */
 package org.jboss.as.quickstarts.helloworld;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import org.jboss.as.quickstarts.test.openshift.OpenShiftTestManager;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import java.io.IOException;
 import java.net.URI;
@@ -28,13 +30,35 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.time.Duration;
 import java.util.Optional;
-import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  *
  * @author Emmanuel Hugonnet (c) 2022 Red Hat, Inc.
  */
 public class HelloWorldServletIT {
+
+    private static OpenShiftTestManager manager;
+
+    @BeforeClass
+    public static void initialiseManager() throws Exception {
+        if (Boolean.getBoolean("openshift.deploy")) {
+            manager = OpenShiftTestManager.builder(HelloWorldServletIT.class)
+                    .setHelmChartValuesLocation("charts/helm.yaml")
+                    .buildAndInitialise();
+        }
+    }
+
+    @AfterClass
+    public static void closeManager() {
+        if (Boolean.getBoolean("openshift.deploy")) {
+            if (manager != null) {
+                manager.close();
+            }
+        }
+    }
 
     protected URI getHTTPEndpoint() {
         String host = getServerHost();
@@ -81,4 +105,6 @@ public class HelloWorldServletIT {
     protected String getLineSeparator() {
         return"\n";
     }
+
+
 }

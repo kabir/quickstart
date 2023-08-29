@@ -18,6 +18,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>11</source>
+                    <target>11</target>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
     <parent>
         <groupId>org.wildfly.quickstarts</groupId>
         <artifactId>wildfly-quickstart-parent</artifactId>
@@ -48,6 +60,16 @@
         <version.server>29.0.0.Final</version.server>
         <version.wildfly.maven.plugin>4.2.0.Final</version.wildfly.maven.plugin>
         <version.cloud.fp>4.0.0.Final</version.cloud.fp>
+
+        <!-- XTF versions -->
+        <version.fabric8.client>5.12.2</version.fabric8.client>
+        <version.lombok>1.18.20</version.lombok>
+        <!--
+            Using XTF snapshot in order to include fixes in:
+            https://github.com/xtf-cz/xtf/commit/a833c545082b314db538ed0c73e93310752654f7
+            https://github.com/xtf-cz/xtf/commit/0ed7dc16c88087ce9073a447311be6c01a520f8a
+        -->
+        <version.xtf>0.31-SNAPSHOT</version.xtf>
     </properties>
 
     <repositories>
@@ -175,6 +197,38 @@
             <artifactId>wildfly-arquillian-container-managed</artifactId>
             <scope>test</scope>
         </dependency>
+
+
+        <!-- Intersmash dependencies -->
+        <!-- TODO There don't seem to be any released Intersmash artifacts -->
+        <dependency>
+            <groupId>cz.xtf</groupId>
+            <artifactId>core</artifactId>
+            <version>${version.xtf}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${version.lombok}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.fabric8</groupId>
+            <artifactId>openshift-client</artifactId>
+            <version>${version.fabric8.client}</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- Intersmash/XTF pull in Junit 5 - add in legacy support again -->
+        <!-- TODO Try to fix Intersmash/CTF if we end up only depending on their core libraries -->
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <!-- TODO hardcoded version -->
+            <version>5.7.0</version>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
     <profiles>

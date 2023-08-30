@@ -16,6 +16,7 @@
 package org.jboss.as.quickstarts.helloworld;
 
 import org.jboss.as.quickstarts.test.openshift.OpenShiftTestManager;
+import org.jboss.as.quickstarts.test.openshift.OpenShiftTestProperties;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -44,8 +45,8 @@ public class HelloWorldServletIT {
 
     @BeforeClass
     public static void initialiseManager() throws Exception {
-        if (Boolean.getBoolean("openshift.deploy")) {
-            manager = OpenShiftTestManager.builder(HelloWorldServletIT.class)
+        if (Boolean.getBoolean(OpenShiftTestProperties.OPENSHIFT_DEPLOY)) {
+            manager = OpenShiftTestManager.builder(HelloWorldServletIT.class, "helloworld")
                     .setHelmChartValuesLocation("charts/helm.yaml")
                     .buildAndInitialise();
         }
@@ -53,10 +54,8 @@ public class HelloWorldServletIT {
 
     @AfterClass
     public static void closeManager() {
-        if (Boolean.getBoolean("openshift.deploy")) {
-            if (manager != null) {
-                manager.close();
-            }
+        if (manager != null) {
+            manager.close();
         }
     }
 
@@ -73,6 +72,9 @@ public class HelloWorldServletIT {
     }
 
     private String getServerHost() {
+        if (manager != null) {
+            return manager.getApplicationRouteHost();
+        }
         String host = System.getenv("SERVER_HOST");
         if (host == null) {
             host = System.getProperty("server.host");
@@ -103,7 +105,7 @@ public class HelloWorldServletIT {
     }
 
     protected String getLineSeparator() {
-        return"\n";
+        return "\n";
     }
 
 

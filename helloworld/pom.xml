@@ -70,6 +70,8 @@
             https://github.com/xtf-cz/xtf/commit/0ed7dc16c88087ce9073a447311be6c01a520f8a
         -->
         <version.xtf>0.31-SNAPSHOT</version.xtf>
+        <version.jboss.logmanager>1.0.3.Final</version.jboss.logmanager>
+        <version.jboss.slf4j-logging>1.2.1.Final</version.jboss.slf4j-logging>
     </properties>
 
     <repositories>
@@ -197,7 +199,20 @@
             <artifactId>wildfly-arquillian-container-managed</artifactId>
             <scope>test</scope>
         </dependency>
-
+        <dependency>
+            <!-- xtf needs this -->
+            <groupId>org.jboss.slf4j</groupId>
+            <artifactId>slf4j-jboss-logging</artifactId>
+            <scope>test</scope>
+            <version>${version.jboss.slf4j-logging}</version>
+        </dependency>
+        <dependency>
+            <!-- needed to control the xtf logging -->
+            <groupId>org.jboss.logmanager</groupId>
+            <artifactId>commons-logging-jboss-logmanager</artifactId>
+            <scope>test</scope>
+            <version>${version.jboss.logmanager}</version>
+        </dependency>
 
         <!-- Intersmash dependencies -->
         <!-- TODO There don't seem to be any released Intersmash artifacts -->
@@ -332,6 +347,9 @@
                             <excludes>
                                 <exclude>**/managed/*</exclude>
                             </excludes>
+                            <systemPropertyVariables>
+                                <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                            </systemPropertyVariables>
                         </configuration>
                         <executions>
                             <execution>

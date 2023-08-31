@@ -41,7 +41,6 @@ if [ "${QS_OPTIMIZED}" = "1" ]; then
   echo "Optimized build"
 
   echo "Building application and provisioning server..."
-  # TODO how to pass in runtime image? Probably some system property?
   mvn package -Popenshift wildfly:image
 
   echo "Creating docker file locally and pushing to image stream"

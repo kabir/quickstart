@@ -25,6 +25,9 @@ if [ ! -d "${qs_dir}" ]; then
   exit 1
 fi
 cd "${qs_dir}"
+
+echo "Running the ${qs_dir} tests on OpenShift"
+start=$SECONDS
 ################################################################################################
 # Provision server and push imagestream if QS_OPTIMIZED=1
 if [ "${QS_OPTIMIZED}" = "1" ]; then
@@ -41,22 +44,17 @@ fi
 # '--atomic' waits until the pods are ready, and removes everything if something went wrong
 # `--timeout` sets the timeout for the wait.
 # https://helm.sh/docs/helm/helm_install/ has more details
-
-set -x
 if [ -n "${helm_set_arguments}" ]; then
   helm install "${application}" wildfly/wildfly -f charts/helm.yaml  --atomic --timeout=10m0s "${helm_set_arguments}"
 else
   helm install "${application}" wildfly/wildfly -f charts/helm.yaml  --atomic --timeout=10m0s
 fi
-set +x
 
 ################################################################################################
 # Run tests
 echo "running the tests"
 pwd
-set -x
 mvn clean verify -Parq-remote -Dserver.host=https://$(oc get route "${application}" --template='{{ .spec.host }}')
-set +x
 
 ################################################################################################
 # Helm uninstall
@@ -72,4 +70,7 @@ else
   rm -rf target
 fi
 
+end=$SECONDS
+duration=$((end - start))
+echo "${application} tests run in $(($duration / 60))m$(($duration % 60))s."
 

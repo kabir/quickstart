@@ -12,7 +12,9 @@
 #                   work on OpenShift which expects amd64. Set QS_ARM=1 to build the image with amd instead.
 #                   You need to set up Docker to use buildx in the configuration, make sure
 #                   "Use containerd for pulling and storing images" in the Beta section of the "Features In Development"
-#                   part of the settings IS DISABLED, and also that
+#                   part of the settings IS DISABLED, and also that you have configured the docker engine to use buildx
+#                   and created a buildx builder instance with `docker buildx create --use` (`docker buildx ls` should
+#                   return an entry with a '*' indicating it is used.
 
 ################################################################################################
 # Go into the quickstart directory
@@ -41,7 +43,7 @@ if [ "${QS_OPTIMIZED}" = "1" ]; then
   echo "Optimized build"
 
   echo "Building application and provisioning server..."
-  mvn package -Popenshift wildfly:image
+  mvn package -Popenshift wildfly:image -DskipTests
 
   echo "Creating docker file locally and pushing to image stream"
   # Copy the template docker file to the target directory and build the image

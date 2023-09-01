@@ -20,14 +20,13 @@
 # Go into the quickstart directory
 
 script_directory="${0%/*}"
-cd "$script_directory"
+cd "${script_directory}"
 qs_dir="${1}"
 if [ -z "${1}" ]; then
   echo "No quickstart directory set"
   exit 1
 fi
 
-application="${qs_dir}"
 if [ ! -d "../../${qs_dir}" ]; then
   echo "$(pwd)/../../${qs_dir} does not exist"
   exit 1
@@ -37,6 +36,27 @@ cd "../../${qs_dir}"
 echo "Running the ${qs_dir} tests on OpenShift"
 start=$SECONDS
 
+
+################################################################################################
+# Load up the helper functions, possibly overridden in the quickstart
+source "${script_directory}/openshift-test-overrides.sh"
+
+if [ -f "openshift-test-overrides.sh" ]; then
+  # TODO maybe this should be 'hidden' a bit under the test resources for the QS?
+  source "openshift-test-overrides.sh"
+fi
+
+# applicationName is from openshift-test-overrides.sh
+application=$(applicationName "${qs_dir}")
+
+
+################################################################################################
+# Install any pre-requisites. Function is from openshift-test-overrides.sh
+echo "Checking if we need to install pre-requisites"
+installPrerequisites "${application}"
+
+#echo "TMP early exit"
+#exit 1
 ################################################################################################
 # Provision server and push imagestream if QS_OPTIMIZED=1
 if [ "${QS_OPTIMIZED}" = "1" ]; then
@@ -73,11 +93,9 @@ helm_set_arguments=""
 if [ "${QS_OPTIMIZED}" = "1" ]; then
    helm_set_arguments=" --set build.enabled=false"
 fi
-# '--atomic' waits until the pods are ready, and removes everything if something went wrong
-# `--timeout` sets the timeout for the wait.
-# https://helm.sh/docs/helm/helm_install/ has more details
-# Don't quote ${helm_set_arguments} since then it fails when there are none
-helm install "${application}" wildfly/wildfly -f charts/helm.yaml  --atomic --timeout=10m0s ${helm_set_arguments}
+# helmInstall is from openshift-test-overrides.sh
+helmInstall "${application}" "${helm_set_arguments}"
+
 ################################################################################################
 # Run tests
 echo "running the tests"
@@ -87,13 +105,19 @@ mvn verify -Parq-remote -Dserver.host=https://$(oc get route "${application}" --
 ################################################################################################
 # Helm uninstall
 echo "Running Helm uninstall"
-helm uninstall "$application"
+helm uninstall "${application}" --wait --timeout=10m0s
 if [ "${QS_OPTIMIZED}" = "1" ]; then
-   oc delete imagestream ${application}
+   oc delete imagestream "${application}"
 fi
 
 ################################################################################################
-# Delete target directory so we don't run out of disk space when running all the tests
+# Clean pre-requisites (cleanPrerequisites is fromm openshift-test-overrides.sh)
+echo "Checking if we need to clean pre-requisites"
+cleanPrerequisites "${application}"
+
+
+################################################################################################
+# Delete target directory to conserve disk space when running all the tests
 if [ "${SKIP_CLEANUP}" = "1" ]; then
   echo "Skipping cleanup..."
 else

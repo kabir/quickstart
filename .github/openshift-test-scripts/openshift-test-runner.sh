@@ -15,9 +15,20 @@ function runQuickstart() {
   echo "Running tests for ${qs_dir} "
   echo "================================================================="
 
+
   "${script_dir}"/run-quickstart-test-on-openshift.sh "${qs_dir}"
+  if [ "$?" = "0" ]; then
+    echo "Tests for ${qs_dir} PASSED!"
+  else
+    echo "Tests for ${qs_dir} FAILED!"
+    test_status=1
+  fi
+  echo "---------------------------------------------------------------"
+  echo
+  echo
 }
 
+test_status=0
 script_directory="${0%/*}"
 script_directory=$(realpath "${script_directory}")
 cd "${script_directory}"
@@ -41,3 +52,5 @@ for file in ${basedir}/*; do
 
   runQuickstart "${script_directory}" "${fileName}"
 done
+
+exit "${test_status}"

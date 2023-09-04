@@ -13,3 +13,7 @@ function cleanPrerequisites()
   oc delete service artemis
   oc delete pod artemis
 }
+
+function getHelmSetVariablePrefix() {
+    echo "wildfly."
+}

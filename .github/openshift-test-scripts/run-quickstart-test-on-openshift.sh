@@ -37,7 +37,6 @@ cd "../../${qs_dir}"
 echo "Running the ${qs_dir} tests on OpenShift"
 start=$SECONDS
 
-
 ################################################################################################
 # Load up the helper functions, possibly overridden in the quickstart
 source "${script_directory}/openshift-test-overrides.sh"
@@ -47,9 +46,9 @@ if [ -f "openshift-test-overrides.sh" ]; then
   source "openshift-test-overrides.sh"
 fi
 
-# applicationName is from openshift-test-overrides.sh
+# These functions are from openshift-test-overrides.sh
 application=$(applicationName "${qs_dir}")
-
+helm_set_arg_prefix=$(getHelmSetVariablePrefix)
 
 ################################################################################################
 # Install any pre-requisites. Function is from openshift-test-overrides.sh
@@ -59,15 +58,17 @@ installPrerequisites "${application}"
 ################################################################################################
 # Provision server and push imagestream if QS_OPTIMIZED=1 and disabledOptimized is not set
 
+set -x
 optimized="0"
 if [ "$QS_OPTIMIZED" = 1 ]; then
   disabledOptimized=$(isOptimizedModeDisabled)
-  if [ "${disabledOptimized}" != "1" ]; then
-    optimised="1"
-  else
+  if [ "${disabledOptimized}" = "1" ]; then
     echo "Optimized requested but disabled for this quickstart"
+  else
+    optimized="1"
   fi
 fi
+set +x
 
 
 if [ "${optimized}" = "1" ]; then
@@ -103,7 +104,7 @@ fi
 # Helm install, waiting for the pods to come up
 helm_set_arguments=""
 if [ "${optimized}" = "1" ]; then
-   helm_set_arguments=" --set build.enabled=false"
+   helm_set_arguments=" --set ${helm_set_arg_prefix}build.enabled=false"
 fi
 echo "Performing Helm install and waiting for completion.... (Additional arguments: ${helm_set_arguments})"
 # helmInstall is from openshift-test-overrides.sh

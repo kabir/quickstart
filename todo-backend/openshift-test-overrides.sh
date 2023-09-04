@@ -20,6 +20,6 @@ function cleanPrerequisites()
   helm repo remove bitnami
 }
 
-function isOptimizedModeDisabled() {
-  echo "1"
+function getHelmSetVariablePrefix() {
+  echo "wildfly."
 }

@@ -20,6 +20,7 @@
 # Go into the quickstart directory
 
 script_directory="${0%/*}"
+script_directory=$(realpath "${script_directory}")
 cd "${script_directory}"
 qs_dir="${1}"
 if [ -z "${1}" ]; then

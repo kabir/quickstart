@@ -19,3 +19,7 @@ function cleanPrerequisites()
   oc delete secret todo-backend-db
   helm repo remove bitnami
 }
+
+function isOptimizedModeDisabled() {
+  echo "1"
+}

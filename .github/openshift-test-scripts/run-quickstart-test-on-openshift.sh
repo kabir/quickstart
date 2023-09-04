@@ -70,9 +70,9 @@ if [ "${QS_OPTIMIZED}" = "1" ]; then
   export image="${application}:latest"
   docker build -t "${image}" target
 
-  if [ "${QS_MULTIARCH}" = "1" ]; then
+  if [ "${QS_ARM}" = "1" ]; then
     # Rebuild with the correct platform for OpenShift (only applicable in a developer environment)
-    echo "Rebuilding...."
+    echo "Rebuilding for linux/amd64...."
     docker build  --platform linux/amd64 -t "${image}" target
   fi
 

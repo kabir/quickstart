@@ -18,6 +18,7 @@
 
 ################################################################################################
 # Go into the quickstart directory
+test_status=0
 script_directory="${0%/*}"
 script_directory=$(realpath "${script_directory}")
 cd "${script_directory}"
@@ -57,7 +58,6 @@ installPrerequisites "${application}"
 ################################################################################################
 # Provision server and push imagestream if QS_OPTIMIZED=1 and disabledOptimized is not set
 
-set -x
 optimized="0"
 if [ "$QS_OPTIMIZED" = 1 ]; then
   disabledOptimized=$(isOptimizedModeDisabled)
@@ -67,8 +67,6 @@ if [ "$QS_OPTIMIZED" = 1 ]; then
     optimized="1"
   fi
 fi
-set +x
-
 
 if [ "${optimized}" = "1" ]; then
   echo "Optimized build"
@@ -114,7 +112,9 @@ helmInstall "${application}" "${helm_set_arguments}"
 echo "running the tests"
 pwd
 mvn verify -Parq-remote -Dserver.host=https://$(oc get route "${application}" --template='{{ .spec.host }}')
-
+if [ "$?" != "0" ]; then
+  test_status=1
+fi
 ################################################################################################
 # Helm uninstall
 echo "Running Helm uninstall"
@@ -142,3 +142,4 @@ end=$SECONDS
 duration=$((end - start))
 echo "${application} tests run in $(($duration / 60))m$(($duration % 60))s."
 
+exit ${test_status}

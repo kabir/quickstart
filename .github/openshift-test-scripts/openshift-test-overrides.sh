@@ -51,3 +51,9 @@ function helmInstall() {
     helm install "${application}" wildfly/wildfly -f charts/helm.yaml  --atomic --timeout=10m0s ${helm_set_arguments}
 }
 
+# Checks whether optimized mode should be disabled
+# To disable optimized mode for a quickstart, add this method to its
+# openshift-test-overrides.sh and change the body to 'echo "1"'
+function isOptimizedModeDisabled() {
+  echo "0"
+}

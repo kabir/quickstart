@@ -55,11 +55,21 @@ application=$(applicationName "${qs_dir}")
 echo "Checking if we need to install pre-requisites"
 installPrerequisites "${application}"
 
-#echo "TMP early exit"
-#exit 1
 ################################################################################################
-# Provision server and push imagestream if QS_OPTIMIZED=1
-if [ "${QS_OPTIMIZED}" = "1" ]; then
+# Provision server and push imagestream if QS_OPTIMIZED=1 and disabledOptimized is not set
+
+optimized="0"
+if [ "$QS_OPTIMIZED" = 1 ]; then
+  disabledOptimized=$(isOptimizedModeDisabled)
+  if [ "${disabledOptimized}" != "1" ]; then
+    optimised="1"
+  else
+    echo "Optimized requested but disabled for this quickstart"
+  fi
+fi
+
+
+if [ "${optimized}" = "1" ]; then
   echo "Optimized build"
 
   echo "Building application and provisioning server..."
@@ -87,12 +97,14 @@ if [ "${QS_OPTIMIZED}" = "1" ]; then
   oc set image-lookup "${application}"
 fi
 
+
 ################################################################################################
 # Helm install, waiting for the pods to come up
 helm_set_arguments=""
-if [ "${QS_OPTIMIZED}" = "1" ]; then
+if [ "${optimized}" = "1" ]; then
    helm_set_arguments=" --set build.enabled=false"
 fi
+echo "Performing Helm install and waiting for completion.... (Additional arguments: ${helm_set_arguments})"
 # helmInstall is from openshift-test-overrides.sh
 helmInstall "${application}" "${helm_set_arguments}"
 

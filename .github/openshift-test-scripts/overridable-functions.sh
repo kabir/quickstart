@@ -1,4 +1,7 @@
-# These functions are 'overridable in the individual quickstarts
+# These functions are 'overridable in the individual quickstarts.
+# To do so create a ./qs-overrides/${qs_dir}/overridable-functions.sh and override the
+# functions you need to. ${qs_dir} in this case is the same as the name of the quickstart directory
+# that you want to tweak
 
 # Installs any prerequisites before doing the Helm install.
 # The current directory is the quickstart directory.
@@ -53,7 +56,7 @@ function helmInstall() {
 
 # Checks whether optimized mode should be disabled
 # To disable optimized mode for a quickstart, add this method to its
-# openshift-test-overrides.sh and change the body to 'echo "1"'
+# overridable-functions.sh and change the body to 'echo "1"'
 function isOptimizedModeDisabled() {
   echo "0"
 }

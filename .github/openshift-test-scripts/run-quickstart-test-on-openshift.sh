@@ -39,19 +39,19 @@ start=$SECONDS
 
 ################################################################################################
 # Load up the helper functions, possibly overridden in the quickstart
-source "${script_directory}/openshift-test-overrides.sh"
+source "${script_directory}/overridable-functions.sh"
 
-if [ -f "openshift-test-overrides.sh" ]; then
-  # TODO maybe this should be 'hidden' a bit under the test resources for the QS?
-  source "openshift-test-overrides.sh"
+qs_override_file="${script_directory}/qs-overrides/${qs_dir}/overridable-functions.sh"
+if [ -f "${qs_override_file}" ]; then
+  source "${qs_override_file}"
 fi
 
-# These functions are from openshift-test-overrides.sh
+# These functions are from overridable-functions.sh
 application=$(applicationName "${qs_dir}")
 helm_set_arg_prefix=$(getHelmSetVariablePrefix)
 
 ################################################################################################
-# Install any pre-requisites. Function is from openshift-test-overrides.sh
+# Install any pre-requisites. Function is from overridable-functions.sh
 echo "Checking if we need to install pre-requisites"
 installPrerequisites "${application}"
 
@@ -104,7 +104,7 @@ if [ "${optimized}" = "1" ]; then
    helm_set_arguments=" --set ${helm_set_arg_prefix}build.enabled=false"
 fi
 echo "Performing Helm install and waiting for completion.... (Additional arguments: ${helm_set_arguments})"
-# helmInstall is from openshift-test-overrides.sh
+# helmInstall is from overridable-functions.sh
 helmInstall "${application}" "${helm_set_arguments}"
 
 ################################################################################################
@@ -124,7 +124,7 @@ if [ "${QS_OPTIMIZED}" = "1" ]; then
 fi
 
 ################################################################################################
-# Clean pre-requisites (cleanPrerequisites is fromm openshift-test-overrides.sh)
+# Clean pre-requisites (cleanPrerequisites is fromm overridable-functions.sh)
 echo "Checking if we need to clean pre-requisites"
 cleanPrerequisites "${application}"
 

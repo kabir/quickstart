@@ -103,7 +103,12 @@ helm_set_arguments=""
 if [ "${optimized}" = "1" ]; then
    helm_set_arguments=" --set ${helm_set_arg_prefix}build.enabled=false"
 fi
-echo "Performing Helm install and waiting for completion.... (Additional arguments: ${helm_set_arguments})"
+additional_arguments="No additional arguments"
+if [ -n "${helm_set_arguments}" ]; then
+  additional_arguments="Additional arguments: ${helm_set_arguments}"
+fi
+
+echo "Performing Helm install and waiting for completion.... (${additional_arguments})"
 # helmInstall is from overridable-functions.sh
 helmInstall "${application}" "${helm_set_arguments}"
 

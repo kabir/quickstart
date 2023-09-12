@@ -7,6 +7,10 @@
 # Understood environment variables:
 # * QS_OPTIMIZED - If set and equal to 1 we will run to run the build optimised. In this case we provision the server
 #                   ourselves, create a runtime image, and create and push to the image stream expected by the Helm chart.
+# * QS_MAVEN_REPOSITORY - path to the local maven repository, if the standard ~/.m2/repository does not work
+# * QS_UNSIGNED_SERVER_CERT - If the OpenShift server is using unsigned certificates for https for client applications,
+#                   set this to 1 and a truststore will be created containing the server certificate, and truststore
+#                   parameters will be set.
 # * QS_SKIP_CLEANUP - If set and equal to 1 we will not delete the contents of the target directory.
 # * QS_ARM - If you are developing on an arm64 machine and using QS_OPTIMIZED=1, your image will not
 #                   work on OpenShift which expects amd64. Set QS_ARM=1 to build the image with amd instead.
@@ -28,14 +32,17 @@ if [ -z "${1}" ]; then
   exit 1
 fi
 
-if [ ! -d "../../${qs_dir}" ]; then
-  echo "$(pwd)/../../${qs_dir} does not exist"
+if [ ! -d "../../../../${qs_dir}" ]; then
+  echo "$(pwd)/../../../../${qs_dir} does not exist"
   exit 1
 fi
-cd "../../${qs_dir}"
+cd "../../../../${qs_dir}"
 
 echo "Running the ${qs_dir} tests on OpenShift"
 start=$SECONDS
+
+echo "===== Environment:"
+env
 
 ################################################################################################
 # Load up the helper functions, possibly overridden in the quickstart
@@ -72,7 +79,7 @@ if [ "${optimized}" = "1" ]; then
   echo "Optimized build"
 
   echo "Building application and provisioning server..."
-  mvn package -Popenshift wildfly:image -DskipTests
+  mvn -B package -Popenshift wildfly:image -DskipTests ${QS_MAVEN_REPOSITORY}
 
   echo "Creating docker file locally and pushing to image stream"
   # Copy the template docker file to the target directory and build the image
@@ -116,7 +123,28 @@ helmInstall "${application}" "${helm_set_arguments}"
 # Run tests
 echo "running the tests"
 pwd
-mvn verify -Parq-remote -Dserver.host=https://$(oc get route "${application}" --template='{{ .spec.host }}')
+
+# TODO temp
+set -x
+route=$(oc get route "${application}" --template='{{ .spec.host }}')
+truststore_properties=""
+if [ "${QS_UNSIGNED_SERVER_CERT}" = "1" ]; then
+  pushd "${script_directory}/InstallCert"
+  if [ ! -f "jssecacerts" ]; then
+    # We haven't already created a truststore so create one
+    # TODO This must be the same as the Java version (in case we test other versions than 11)
+    echo 1 | java InstallCert "${route}" changeit
+  fi
+  popd
+
+  #Set the system properties to use the truststore
+  truststore_properties="-Djavax.net.ssl.trustStore=${script_directory}/InstallCert/jssecacerts -Djavax.net.ssl.trustStorePassword=changeit"
+fi
+
+
+mvn -B verify -Parq-remote -Dserver.host=https://${route} ${QS_MAVEN_REPOSITORY} ${truststore_properties}
+# TODO temp
+set +x
 if [ "$?" != "0" ]; then
   test_status=1
 fi

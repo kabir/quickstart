@@ -40,7 +40,7 @@ cd "${script_directory}"
 IFS=$'\r\n' GLOBIGNORE='*' command eval  'excluded_dirs=($(cat excluded-directories.txt))'
 # echo "${excluded_dirs[@]}"
 
-basedir="${script_directory}/../.."
+basedir="${script_directory}/../../../.."
 for file in ${basedir}/*; do
   fileName=$(basename "${file}")
   if [ ! -d "${file}" ]; then
@@ -55,6 +55,9 @@ for file in ${basedir}/*; do
   fi
 
   runQuickstart "${script_directory}" "${fileName}"
+  if [ "$?" != "1" ]; then
+    test_status=1
+  fi
 done
 
 

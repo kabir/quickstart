@@ -71,39 +71,19 @@ oc adm policy add-cluster-role-to-user cluster-admin ${TEST_USER_USERNAME}
 
 export TEST_NAMESPACE=quickstart-com
 
-#cat >> test.properties <<EOL
-#xtf.openshift.url=${TEST_CLUSTER_URL}
-#xtf.openshift.namespace=${TEST_NAMESPACE}
-#xtf.bm.namespace=${TEST_NAMESPACE}-builds
-#xtf.openshift.admin.username=${TEST_ADMIN_USERNAME}
-#xtf.openshift.admin.password=${TEST_ADMIN_PASSWORD}
-#xtf.openshift.admin.token=${ADMIN_TOKEN}
-#xtf.openshift.master.username=${TEST_USER_USERNAME}
-#xtf.openshift.master.password=${TEST_USER_PASSWORD}
-#xtf.openshift.master.token=${USER_TOKEN}
-#xtf.openshift.admin.kubeconfig=${KUBECONFIG}
-#xtf.openshift.master.kubeconfig=${KUBECONFIG}
-#
-#EOL
-#
-#cat test.properties
-
-
-#mvn clean install -Dmaven.repo.local=./local-repo-community -DskipTests
-#mvn test -Dmaven.repo.local=./local-repo-community -pl testsuite/ -Pts.community
-
-# Debug stuff
-#echo "---- Current dir"
-#pwd
-#echo "---- Current dir contents"
-#ls -alR .
-
 mkdir .local-maven-repository
 export QS_MAVEN_REPOSITORY="-Dmaven.repo.local=$(pwd)/.local-maven-repository"
 export QS_UNSIGNED_SERVER_CERT="1"
+export QS_HELM_INSTALL_TIMEOUT="20m0s"
 
 helm repo add wildfly https://docs.wildfly.org/wildfly-charts/
 helm repo update
+
+echo "===== Environment:"
+env
+echo "=================="
+
+echo "Calling script runner....."
 
 # Script path is relative to checkout folder
 .ci/openshift-ci/build-root/scripts/openshift-test-runner.sh

@@ -12,6 +12,8 @@
 #                   set this to 1 and a truststore will be created containing the server certificate, and truststore
 #                   parameters will be set.
 # * QS_SKIP_CLEANUP - If set and equal to 1 we will not delete the contents of the target directory.
+# * QS_HELM_INSTALL_TIMEOUT - Default is 10m0s
+# * QS_HELM_UNINSTALL_TIMEOUT - Default is 10m0s
 # * QS_ARM - If you are developing on an arm64 machine and using QS_OPTIMIZED=1, your image will not
 #                   work on OpenShift which expects amd64. Set QS_ARM=1 to build the image with amd instead.
 #                   You need to set up Docker to use buildx in the configuration, make sure
@@ -41,8 +43,16 @@ cd "../../../../${qs_dir}"
 echo "Running the ${qs_dir} tests on OpenShift"
 start=$SECONDS
 
-echo "===== Environment:"
-env
+# Determine timeouts
+helm_install_timeout=10m0s
+helm_uninstall_timeout=10m0s
+if [ -n "${QS_HELM_INSTALL_TIMEOUT}" ]; then
+  helm_install_timeout="${QS_HELM_INSTALL_TIMEOUT}"
+fi
+if [ -n "${QS_HELM_UNINSTALL_TIMEOUT}" ]; then
+  helm_uninstall_timeout="${QS_HELM_UNINSTALL_TIMEOUT}"
+fi
+
 
 ################################################################################################
 # Load up the helper functions, possibly overridden in the quickstart
@@ -145,6 +155,7 @@ fi
 mvn -B verify -Parq-remote -Dserver.host=https://${route} ${QS_MAVEN_REPOSITORY} ${truststore_properties}
 # TODO temp
 set +x
+
 if [ "$?" != "0" ]; then
   test_status=1
 fi

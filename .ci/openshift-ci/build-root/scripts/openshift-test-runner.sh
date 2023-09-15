@@ -25,14 +25,18 @@ function runQuickstart() {
     echo "${GREEN_CONSOLE}Tests for ${qs_dir} PASSED!${NOCOLOUR_CONSOLE}"
   else
     echo "${RED_CONSOLE}Tests for ${qs_dir} FAILED!${NOCOLOUR_CONSOLE}"
-    test_status=1
+    if [ -z "${failed_tests}" ]; then
+      failed_tests="${fileName}"
+    else
+      failed_tests="${failed_tests}, ${fileName}"
+    fi
   fi
   echo "---------------------------------------------------------------"
   echo
   echo
 }
 
-test_status=0
+failed_tests=""
 script_directory="${0%/*}"
 script_directory=$(realpath "${script_directory}")
 cd "${script_directory}"
@@ -55,16 +59,13 @@ for file in ${basedir}/*; do
   fi
 
   runQuickstart "${script_directory}" "${fileName}"
-  if [ "$?" != "1" ]; then
-    test_status=1
-  fi
 done
 
 
-if [ "${test_status}" = "0" ]; then
+if [ -z "${failed_tests}" ]; then
   echo "${GREEN_CONSOLE}All tests passed!${NOCOLOUR_CONSOLE}"
 else
-  echo "${RED_CONSOLE}There were test failures. See the logs for details${NOCOLOUR_CONSOLE}"
+  echo "${RED_CONSOLE}There were test failures. See the logs for details. The failed tests were: ${failed_tests} ${NOCOLOUR_CONSOLE}"
   test_status=1
 fi
 

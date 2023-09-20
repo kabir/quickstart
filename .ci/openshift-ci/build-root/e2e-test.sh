@@ -74,7 +74,7 @@ export TEST_NAMESPACE=quickstart-com
 mkdir .local-maven-repository
 export QS_MAVEN_REPOSITORY="-Dmaven.repo.local=$(pwd)/.local-maven-repository"
 export QS_UNSIGNED_SERVER_CERT="1"
-export QS_HELM_INSTALL_TIMEOUT="20m0s"
+# export QS_HELM_INSTALL_TIMEOUT="20m0s"
 
 helm repo add wildfly https://docs.wildfly.org/wildfly-charts/
 helm repo update

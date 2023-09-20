@@ -44,6 +44,8 @@ function cleanPrerequisites()
 # 1 - application name
 # 2 - set arguments
 #
+# Returns the exit status of the helm install
+#
 # Additionally the following env vars may be used:
 # * helm_install_timeout - the adjusted timeout for the helm install
 #
@@ -55,7 +57,8 @@ function helmInstall() {
     # `--timeout` sets the timeout for the wait.
     # https://helm.sh/docs/helm/helm_install/ has more details
     # Don't quote ${helm_set_arguments} since then it fails when there are none
-    helm install "${application}" wildfly/wildfly -f charts/helm.yaml  --atomic --timeout=${helm_install_timeout} ${helm_set_arguments}
+    helm install "${application}" wildfly/wildfly -f charts/helm.yaml  --wait --timeout=${helm_install_timeout} ${helm_set_arguments}
+    echo "$?"
 }
 
 # Checks whether optimized mode should be disabled

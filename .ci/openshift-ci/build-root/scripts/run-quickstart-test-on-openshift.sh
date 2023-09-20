@@ -142,7 +142,7 @@ if [ "${QS_UNSIGNED_SERVER_CERT}" = "1" ]; then
   pushd "${script_directory}/InstallCert"
   if [ ! -f "jssecacerts" ]; then
     # We haven't already created a truststore so create one
-    # TODO This must be the same as the Java version (in case we test other versions than 11)
+    # We use a pre-compiled version of InstallCert since we don't have javac in the image created by the Dockerfile
     echo 1 | java InstallCert "${route}" changeit
   fi
   popd

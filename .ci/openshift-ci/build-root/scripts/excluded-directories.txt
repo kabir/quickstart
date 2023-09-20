@@ -50,3 +50,16 @@ websocket-endpoint
 wsat-simple
 wsba-coordinator-completion-simple
 wsba-participant-completion-simple
+#TEMPORARY
+cmt
+ee-security
+helloworld
+helloworld-ws
+jaxrs-client
+kitchensink
+numberguess
+remote-helloworld-mdb
+servlet-security
+temperature-converter
+thread-racing
+websocket-hello

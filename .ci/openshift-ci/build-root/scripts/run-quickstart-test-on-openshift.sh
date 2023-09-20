@@ -44,13 +44,13 @@ echo "Running the ${qs_dir} tests on OpenShift"
 start=$SECONDS
 
 # Determine timeouts
-helm_install_timeout=10m0s
-helm_uninstall_timeout=10m0s
+export helm_install_timeout=10m0s
+export helm_uninstall_timeout=10m0s
 if [ -n "${QS_HELM_INSTALL_TIMEOUT}" ]; then
-  helm_install_timeout="${QS_HELM_INSTALL_TIMEOUT}"
+  export helm_install_timeout="${QS_HELM_INSTALL_TIMEOUT}"
 fi
 if [ -n "${QS_HELM_UNINSTALL_TIMEOUT}" ]; then
-  helm_uninstall_timeout="${QS_HELM_UNINSTALL_TIMEOUT}"
+  export helm_uninstall_timeout="${QS_HELM_UNINSTALL_TIMEOUT}"
 fi
 
 

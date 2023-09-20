@@ -10,7 +10,9 @@ function helmInstall() {
     application="${1}"
     helm_set_arguments="$2"
     # Don't quote ${helm_set_arguments} as it breaks the command when empty, and seems to work without
+    set -x
     helm install "${application}" todo-backend-chart/   --atomic --timeout="${helm_install_timeout}" ${helm_set_arguments}
+    set +x
 }
 
 function cleanPrerequisites()

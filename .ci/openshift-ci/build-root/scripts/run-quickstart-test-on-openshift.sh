@@ -127,12 +127,14 @@ fi
 
 echo "Performing Helm install and waiting for completion.... (${additional_arguments})"
 # helmInstall is from overridable-functions.sh
+set -x
 helmInstall "${application}" "${helm_set_arguments}"
 if [ "$?" != "0" ]; then
   echo "Helm install failed!"
-  oc get pods
+  echo "Dumping the application pod(s)"
+  oc logs deployment/"${application}"
 fi
-
+set +x
 ################################################################################################
 # Run tests
 echo "running the tests"

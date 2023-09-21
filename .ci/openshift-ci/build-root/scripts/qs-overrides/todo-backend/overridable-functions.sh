@@ -8,7 +8,9 @@ function installPrerequisites()
 
 function helmInstall() {
     application="${1}"
-    helm_set_arguments="$2"
+    # On CI we don't seem to have permissions to modify the filesystem
+    # Attempt fix as per https://docs.bitnami.com/general/how-to/troubleshoot-helm-chart-issues/#permission-errors-when-enabling-persistence
+    helm_set_arguments="$2 --set postgresql.volumePermissions.enabled=true"
     # Don't quote ${helm_set_arguments} as it breaks the command when empty, and seems to work without
     helm install "${application}" todo-backend-chart/   --wait --timeout="${helm_install_timeout}" ${helm_set_arguments}
     echo "$?"
@@ -30,4 +32,6 @@ function helmInstallFailed() {
     oc get pods
     echo "----> Checking logs for postgres pod"
     oc logs todo-backend-postgresql-0
+    echo "----> Checking events"
+    oc events
 }

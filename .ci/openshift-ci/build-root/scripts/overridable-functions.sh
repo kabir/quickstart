@@ -73,3 +73,12 @@ function isOptimizedModeDisabled() {
 function getHelmSetVariablePrefix() {
     echo ""
 }
+
+# More output when the helm install has gone wrong
+# Parameters
+# 1 - application name
+#
+function helmInstallFailed() {
+    # Noop - the main work is done elsewhere
+    echo ""
+}

@@ -24,3 +24,10 @@ function cleanPrerequisites()
 function getHelmSetVariablePrefix() {
   echo "wildfly."
 }
+
+function helmInstallFailed() {
+    echo "----> Getting status of all pods"
+    oc get pods
+    echo "----> Checking logs for postgres pod"
+    oc logs todo-backend-postgresql-0
+}

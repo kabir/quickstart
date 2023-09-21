@@ -132,6 +132,7 @@ if [ "${helm_install_ret}" != "0" ]; then
   echo "Helm install failed!"
   echo "Dumping the application pod(s)"
   oc logs deployment/"${application}"
+  helmInstallFailed
 fi
 ################################################################################################
 # Run tests

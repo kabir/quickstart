@@ -29,7 +29,7 @@ postgresql:
 
     volumePermissions:
         enabled: false
-        securityContext:
+        containerSecurityContext:
             runAsUser: "auto"
 
 wildfly:

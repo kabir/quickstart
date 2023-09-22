@@ -128,6 +128,11 @@ fi
 echo "Performing Helm install and waiting for completion.... (${additional_arguments})"
 # helmInstall is from overridable-functions.sh
 helm_install_ret=$(helmInstall "${application}" "${helm_set_arguments}")
+# For some reason the above sometimes becomes a multi-line string. actual The exit code will be
+# on the last line
+helm_install_ret=$(echo "${helm_install_ret}"| tail -n 1)
+
+echo "ret: ${helm_install_ret}"
 if [ "${helm_install_ret}" != "0" ]; then
   echo "Helm install failed!"
   echo "Dumping the application pod(s)"

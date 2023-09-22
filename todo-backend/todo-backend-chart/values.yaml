@@ -9,13 +9,23 @@ postgresql:
         database: todos-db
     primary:
         podSecurityContext:
-            enabled: false
-            fsGroup: ""
+          enabled: false
+          fsGroup: null
+          seccompProfile:
+            type=RuntimeDefault:
         containerSecurityContext:
-            enabled: false
-            runAsUser: "auto"
+          enabled: false
+          runAsUser: null
+          allowPrivilegeEscalation: false
+          runAsNonRoot: true
+          seccompProfile:
+            type: RuntimeDefault
+          capabilities:
+            drop: ['ALL']
         persistence:
           size: 2Gi
+
+
 
     readReplicas:
         podSecurityContext:
@@ -31,6 +41,8 @@ postgresql:
         enabled: false
         containerSecurityContext:
             runAsUser: "auto"
+        shmVolume:
+          enabled: false
 
 wildfly:
     build:

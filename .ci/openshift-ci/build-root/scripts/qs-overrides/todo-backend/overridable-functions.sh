@@ -8,8 +8,9 @@ function installPrerequisites()
 
 function helmInstall() {
     application="${1}"
-    # On CI we don't seem to have permissions to modify the filesystem
-    helm_set_arguments="$2"
+    # Turn off persistence since on CI, there are some problems in writing to the shared volume which is used by the
+    # postgres database. This problem does not appear in other environments (even Sandbox)
+    helm_set_arguments="$2 --set postgresql.primary.persistence.enabled=false"
     # Don't quote ${helm_set_arguments} as it breaks the command when empty, and seems to work without
     helm install "${application}" todo-backend-chart/   --wait --timeout="${helm_install_timeout}" ${helm_set_arguments}
     echo "$?"

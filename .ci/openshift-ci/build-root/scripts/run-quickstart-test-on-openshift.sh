@@ -162,6 +162,14 @@ if [ "${QS_UNSIGNED_SERVER_CERT}" = "1" ]; then
 fi
 
 
+# TODO Temp
+echo "=========="
+echo "Temporarily outputting the details of the postgresql pods, claims etc......."
+oc get pod/todo-backend-postgresql-0 -o yaml
+oc get pvc/data-todo-backend-postgresql-0 -o yaml
+oc get storageclass gp3 -o yaml
+echo "=========="
+
 mvn -B verify -Parq-remote -Dserver.host=https://${route} ${QS_MAVEN_REPOSITORY} ${truststore_properties}
 # TODO temp
 set +x
@@ -176,9 +184,6 @@ helm uninstall "${application}" --wait --timeout=10m0s
 if [ "${QS_OPTIMIZED}" = "1" ]; then
    oc delete imagestream "${application}"
 fi
-
-# TODO temp
-sleep 1800
 
 ################################################################################################
 # Clean pre-requisites (cleanPrerequisites is fromm overridable-functions.sh)

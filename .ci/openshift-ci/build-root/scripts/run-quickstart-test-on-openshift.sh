@@ -177,6 +177,9 @@ if [ "${QS_OPTIMIZED}" = "1" ]; then
    oc delete imagestream "${application}"
 fi
 
+# TODO temp
+sleep 1800
+
 ################################################################################################
 # Clean pre-requisites (cleanPrerequisites is fromm overridable-functions.sh)
 echo "Checking if we need to clean pre-requisites"

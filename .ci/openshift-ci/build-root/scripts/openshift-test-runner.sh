@@ -61,7 +61,7 @@ for file in ${basedir}/*; do
   runQuickstart "${script_directory}" "${fileName}"
 done
 
-
+test_status=0
 if [ -z "${failed_tests}" ]; then
   echo "${GREEN_CONSOLE}All tests passed!${NOCOLOUR_CONSOLE}"
 else
@@ -69,4 +69,4 @@ else
   test_status=1
 fi
 
-exit "${test_status}"
+exit ${test_status}

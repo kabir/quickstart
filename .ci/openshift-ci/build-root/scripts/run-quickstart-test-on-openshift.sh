@@ -165,9 +165,18 @@ fi
 # TODO Temp
 echo "=========="
 echo "Temporarily outputting the details of the postgresql pods, claims etc......."
+echo "--- pod"
 oc get pod/todo-backend-postgresql-0 -o yaml
+echo "--- pvc"
 oc get pvc/data-todo-backend-postgresql-0 -o yaml
+echo "--- storageclass"
+oc get storageclass
 oc get storageclass gp3 -o yaml
+oc get storageclass gp3-csi -o yaml
+
+volumename=$(oc get pvc/data-todo-backend-postgresql-0 --template='{{ .spec.volumeName }}')
+oc get pv $volumename -o yaml
+
 echo "=========="
 
 mvn -B verify -Parq-remote -Dserver.host=https://${route} ${QS_MAVEN_REPOSITORY} ${truststore_properties}

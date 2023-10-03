@@ -28,8 +28,8 @@ import jakarta.ws.rs.core.MediaType;
 import java.net.URL;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 

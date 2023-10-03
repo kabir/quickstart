@@ -24,7 +24,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 
 /**
  *
@@ -32,7 +32,7 @@ import org.junit.Test;
  */
 public class RemoteToDoIT extends AbstractToDoIT {
 
-    private static final String REST_TARGET_URL = "http://localhost:8080/todo-backend";
+    private static final String REST_TARGET_URL = "http://localhost:8080/";
 
     private String getServerHost() {
         String host = System.getenv("SERVER_HOST");

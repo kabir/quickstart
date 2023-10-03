@@ -27,6 +27,5 @@ dependencies:
       repository: https://charts.bitnami.com/bitnami
       version: 12.9.0
     - name: wildfly
-      repository: file:///home/ehugonne/dev/wildfly/wildfly-charts/charts/wildfly 
-#      repository: http://docs.wildfly.org/wildfly-charts/
+      repository: http://docs.wildfly.org/wildfly-charts/
       version: 2.3.2

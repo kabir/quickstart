@@ -160,18 +160,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.arquillian.junit</groupId>
-            <artifactId>arquillian-junit-container</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.jboss.arquillian.protocol</groupId>
-            <artifactId>arquillian-protocol-servlet-jakarta</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.10.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -189,13 +180,6 @@
     <profiles>
         <profile>
             <id>provisioned-server</id>
-            <dependencies>
-                <dependency>
-                    <groupId>org.wildfly.arquillian</groupId>
-                    <artifactId>wildfly-arquillian-container-managed</artifactId>
-                    <scope>test</scope>
-                </dependency>
-            </dependencies>
             <build>
                 <plugins>
                     <plugin>
@@ -216,42 +200,23 @@
                                 <layer>cloud-server</layer>
                                 <layer>postgresql-datasource</layer>
                             </layers>
+                            <!-- deploys the quickstart on root web context -->
+                            <runtimeName>ROOT.war</runtimeName>
+                            <packaging-scripts>
+                                <packaging-script>
+                                    <scripts>
+                                        <script>${project.build.scriptSourceDirectory}/cors_filters.cli</script>
+                                    </scripts>
+                                    <!-- Expressions resolved during server execution -->
+                                    <resolve-expressions>false</resolve-expressions>
+                                </packaging-script>
+                            </packaging-scripts>
                         </configuration>
                         <executions>
                             <execution>
                                 <goals>
                                     <goal>package</goal>
                                 </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>${version.failsafe.plugin}</version>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>integration-test</goal>
-                                    <goal>verify</goal>
-                                </goals>
-                                <configuration>
-                                    <environmentVariables>
-                                        <JBOSS_HOME>${project.build.directory}/server</JBOSS_HOME>
-                                        <POSTGRESQL_DATABASE>todos</POSTGRESQL_DATABASE>
-                                        <POSTGRESQL_SERVICE_HOST>localhost</POSTGRESQL_SERVICE_HOST>
-                                        <POSTGRESQL_SERVICE_PORT>5432</POSTGRESQL_SERVICE_PORT>
-                                        <POSTGRESQL_USER>todos</POSTGRESQL_USER>
-                                        <POSTGRESQL_PASSWORD>mysecretpassword</POSTGRESQL_PASSWORD>
-                                        <POSTGRESQL_DATASOURCE>ToDos</POSTGRESQL_DATASOURCE>
-                                    </environmentVariables>
-                                    <includes>
-                                        <include>**/ProvisionedManagedToDoIT</include>
-                                    </includes>
-                                    <excludes>
-                                        <exclude>**/RemoteToDoIT</exclude>
-                                    </excludes>
-                                </configuration>
                             </execution>
                         </executions>
                     </plugin>
@@ -307,8 +272,8 @@
         </profile>
         <profile>
             <!-- An optional Arquillian testing profile that executes tests in a remote JBoss EAP instance.
-            Run with: mvn clean verify -Parq-remote -->
-            <id>arq-remote</id>
+            Run with: mvn clean verify -Pintegration-testing -->
+            <id>integration-testing</id>
             <dependencies>
                 <dependency>
                     <groupId>org.wildfly.arquillian</groupId>

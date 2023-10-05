@@ -16,32 +16,24 @@
  */
 package org.wildfly.quickstarts.microprofile.faulttolerance;
 
+import jakarta.inject.Inject;
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.core.GenericType;
+import jakarta.ws.rs.core.Response;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
-import jakarta.inject.Inject;
-import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
-import jakarta.ws.rs.core.GenericType;
-import jakarta.ws.rs.core.Response;
-import java.net.URL;
 import java.util.List;
 
-@RunWith(Arquillian.class)
 public class MicroProfileFaultToleranceIT {
 
     private static final String APP_NAME = "microprofile-fault-tolerance";
-
-    @ArquillianResource
-    private URL deploymentUrl;
 
     @Inject
     private CoffeeResource coffeeResource;
@@ -112,7 +104,7 @@ public class MicroProfileFaultToleranceIT {
     }
 
     private Response getResponse(String path) {
-        return client.target(deploymentUrl.toString())
+        return client.target(TestUtils.getServerHost())
                 .path(path)
                 .request()
                 .get();

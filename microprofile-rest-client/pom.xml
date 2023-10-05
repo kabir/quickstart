@@ -16,8 +16,8 @@
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <parent>
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
         <groupId>org.wildfly.quickstarts</groupId>
         <artifactId>wildfly-quickstart-parent</artifactId>
         <!--
@@ -27,30 +27,30 @@
         <version>5</version>
         <relativePath/>
     </parent>
-  <artifactId>microprofile-rest-client</artifactId>
-  <version>30.0.0.Final-SNAPSHOT</version>
-  <packaging>pom</packaging>
-  <name>Quickstart: microprofile-rest-client</name>
+    <artifactId>microprofile-rest-client</artifactId>
+    <version>30.0.0.Final-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>Quickstart: microprofile-rest-client</name>
 
-  <licenses>
-    <license>
-      <name>Apache License, Version 2.0</name>
-      <url>https://www.apache.org/licenses/LICENSE-2.0.html</url>
-      <distribution>repo</distribution>
-    </license>
-  </licenses>
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.html</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
 
-  <properties>
-    <!-- The versions for BOMs, Dependencies and Plugins -->
-    <version.microprofile.bom>30.0.0.Beta1</version.microprofile.bom>
-    <version.server.bom>30.0.0.Beta1</version.server.bom>
-    <version.server.bootable-jar>30.0.0.Beta1</version.server.bootable-jar>
-    <version.wildfly-jar.maven.plugin>10.0.0.Final</version.wildfly-jar.maven.plugin>
-    <version.jkube.maven.plugin>1.0.1</version.jkube.maven.plugin>
-    <jkube.generator.from>registry.redhat.io/ubi8/openjdk-11:latest</jkube.generator.from>
-  </properties>
+    <properties>
+        <!-- The versions for BOMs, Dependencies and Plugins -->
+        <version.microprofile.bom>30.0.0.Beta1</version.microprofile.bom>
+        <version.server.bom>30.0.0.Beta1</version.server.bom>
+        <version.server.bootable-jar>30.0.0.Beta1</version.server.bootable-jar>
+        <version.wildfly-jar.maven.plugin>10.0.0.Final</version.wildfly-jar.maven.plugin>
+        <version.jkube.maven.plugin>1.0.1</version.jkube.maven.plugin>
+        <jkube.generator.from>registry.redhat.io/ubi8/openjdk-11:latest</jkube.generator.from>
+    </properties>
 
-  <repositories>
+    <repositories>
         <repository>
             <id>jboss-public-maven-repository</id>
             <name>JBoss Public Maven Repository</name>
@@ -105,60 +105,60 @@
         </pluginRepository>
     </pluginRepositories>
 
-  <modules>
-    <module>country-client</module>
-    <module>country-server</module>
-  </modules>
+    <modules>
+        <module>country-client</module>
+        <module>country-server</module>
+    </modules>
 
-  <dependencyManagement>
-    <dependencies>
-      <!-- importing the microprofile BOM adds MicroProfile specs -->
-      <dependency>
-        <groupId>org.wildfly.bom</groupId>
-        <artifactId>wildfly-microprofile</artifactId>
-        <version>${version.microprofile.bom}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-      <!-- importing the ee-with-tools BOM adds specs and other useful artifacts as managed dependencies -->
-      <dependency>
-        <groupId>org.wildfly.bom</groupId>
-        <artifactId>wildfly-ee-with-tools</artifactId>
-        <version>${version.server.bom}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
+    <dependencyManagement>
+        <dependencies>
+            <!-- importing the microprofile BOM adds MicroProfile specs -->
+            <dependency>
+                <groupId>org.wildfly.bom</groupId>
+                <artifactId>wildfly-microprofile</artifactId>
+                <version>${version.microprofile.bom}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- importing the ee-with-tools BOM adds specs and other useful artifacts as managed dependencies -->
+            <dependency>
+                <groupId>org.wildfly.bom</groupId>
+                <artifactId>wildfly-ee-with-tools</artifactId>
+                <version>${version.server.bom}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
-  <build>
-    <pluginManagement>
-      <plugins>
-        <plugin>
-          <groupId>org.wildfly.plugins</groupId>
-          <artifactId>wildfly-jar-maven-plugin</artifactId>
-          <version>${version.wildfly-jar.maven.plugin}</version>
-        </plugin>
-        <plugin>
-          <groupId>org.eclipse.jkube</groupId>
-          <artifactId>openshift-maven-plugin</artifactId>
-          <version>${version.jkube.maven.plugin}</version>
-        </plugin>
-      </plugins>
-    </pluginManagement>
-    <plugins>
-      <plugin>
-        <groupId>org.asciidoctor</groupId>
-        <artifactId>asciidoctor-maven-plugin</artifactId>
-        <configuration>
-          <!-- adds versions properties as attributes for substitutions in README.adoc source blocks -->
-          <attributes>
-            <versionMicroprofileBom>${version.microprofile.bom}</versionMicroprofileBom>
-          </attributes>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.wildfly.plugins</groupId>
+                    <artifactId>wildfly-jar-maven-plugin</artifactId>
+                    <version>${version.wildfly-jar.maven.plugin}</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.eclipse.jkube</groupId>
+                    <artifactId>openshift-maven-plugin</artifactId>
+                    <version>${version.jkube.maven.plugin}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>org.asciidoctor</groupId>
+                <artifactId>asciidoctor-maven-plugin</artifactId>
+                <configuration>
+                    <!-- adds versions properties as attributes for substitutions in README.adoc source blocks -->
+                    <attributes>
+                        <versionMicroprofileBom>${version.microprofile.bom}</versionMicroprofileBom>
+                    </attributes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 
     <profiles>
         <profile>

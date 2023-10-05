@@ -16,11 +16,10 @@
  */
 package org.wildfly.quickstarts.microprofile.rest.client;
 
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.core.Response;
 import org.jboss.arquillian.container.test.api.Deployment;
-import org.jboss.arquillian.container.test.api.OperateOnDeployment;
-import org.jboss.arquillian.container.test.api.RunAsClient;
-import org.jboss.arquillian.junit.Arquillian;
-import org.jboss.arquillian.test.api.ArquillianResource;
 import org.jboss.dmr.ModelNode;
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.EmptyAsset;
@@ -29,14 +28,8 @@ import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.wildfly.quickstarts.microprofile.rest.client.api.CountryProviderResource;
 import org.wildfly.quickstarts.microprofile.rest.client.model.Country;
-
-import jakarta.ws.rs.client.Client;
-import jakarta.ws.rs.client.ClientBuilder;
-import jakarta.ws.rs.core.Response;
-import java.net.URL;
 
 /**
  * Simple tests for MicroProfile REST Client quickstart. Arquillian deploys an JAR archive to the application server,
@@ -46,16 +39,12 @@ import java.net.URL;
  * @author <a href="mstefank@redhat.com">Martin Stefanko</a>
  *
  */
-@RunWith(Arquillian.class)
-@RunAsClient
 public class MicroProfileRESTClientIT {
 
     private static final String COUNTRY_SERVER = "country-server";
     private static final String COUNTRY_CLIENT = "country-client";
 
-    @ArquillianResource
-    @OperateOnDeployment(COUNTRY_CLIENT)
-    private URL deploymentURL;
+    private String deploymentURL = TestUtils.getServerHost();
 
     private Client client;
 

@@ -41,13 +41,15 @@
     </licenses>
 
     <properties>
-        <!-- The versions for BOMs, Dependencies and Plugins -->
-        <version.microprofile.bom>30.0.0.Beta1</version.microprofile.bom>
-        <version.server.bom>30.0.0.Beta1</version.server.bom>
-        <version.server.bootable-jar>30.0.0.Beta1</version.server.bootable-jar>
-        <version.wildfly-jar.maven.plugin>10.0.0.Final</version.wildfly-jar.maven.plugin>
-        <version.jkube.maven.plugin>1.0.1</version.jkube.maven.plugin>
-        <jkube.generator.from>registry.redhat.io/ubi8/openjdk-11:latest</jkube.generator.from>
+        <!-- the version for the Server -->
+        <version.server>30.0.0.Beta1</version.server>
+        <!-- The versions for BOMs, Packs and Plugins -->
+        <version.bom.ee>${version.server}</version.bom.ee>
+        <version.bom.microprofile>${version.server}</version.bom.microprofile>
+        <version.pack.cloud>4.0.0.Final</version.pack.cloud>
+        <version.plugin.wildfly>4.2.0.Final</version.plugin.wildfly>
+        <version.plugin.wildfly-jar>10.0.0.Final</version.plugin.wildfly-jar>
+        <!-- The versions for other dependencies and plugin -->
     </properties>
 
     <repositories>
@@ -116,7 +118,7 @@
             <dependency>
                 <groupId>org.wildfly.bom</groupId>
                 <artifactId>wildfly-microprofile</artifactId>
-                <version>${version.microprofile.bom}</version>
+                <version>${version.bom.microprofile}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -124,7 +126,7 @@
             <dependency>
                 <groupId>org.wildfly.bom</groupId>
                 <artifactId>wildfly-ee-with-tools</artifactId>
-                <version>${version.server.bom}</version>
+                <version>${version.bom.ee}</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -136,13 +138,13 @@
             <plugins>
                 <plugin>
                     <groupId>org.wildfly.plugins</groupId>
-                    <artifactId>wildfly-jar-maven-plugin</artifactId>
-                    <version>${version.wildfly-jar.maven.plugin}</version>
+                    <artifactId>wildfly-maven-plugin</artifactId>
+                    <version>${version.plugin.wildfly}</version>
                 </plugin>
                 <plugin>
-                    <groupId>org.eclipse.jkube</groupId>
-                    <artifactId>openshift-maven-plugin</artifactId>
-                    <version>${version.jkube.maven.plugin}</version>
+                    <groupId>org.wildfly.plugins</groupId>
+                    <artifactId>wildfly-jar-maven-plugin</artifactId>
+                    <version>${version.plugin.wildfly-jar}</version>
                 </plugin>
             </plugins>
         </pluginManagement>
@@ -153,7 +155,7 @@
                 <configuration>
                     <!-- adds versions properties as attributes for substitutions in README.adoc source blocks -->
                     <attributes>
-                        <versionMicroprofileBom>${version.microprofile.bom}</versionMicroprofileBom>
+                        <versionMicroprofileBom>${version.bom.microprofile}</versionMicroprofileBom>
                     </attributes>
                 </configuration>
             </plugin>

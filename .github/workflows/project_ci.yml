@@ -1,4 +1,4 @@
-name: WildFly Quickstarts CI
+name: WildFly Quickstarts Project CI
 
 on:
   pull_request:

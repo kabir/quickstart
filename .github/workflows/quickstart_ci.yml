@@ -38,6 +38,14 @@ concurrency:
   group: '${{ github.workflow }} @ ${{ github.ref || github.run_id }}'
   cancel-in-progress: true
 
+env:
+  # If this file exists, it will be run before the integration tests are run. One example of its purpose
+  # is to start a database the tests needed
+  BEFORE_FILE: "./quickstarts/.github/workflows/quickstart_${{ inputs.QUICKSTART_PATH }}_ci_before.sh"
+  # If this file exists, it will be run after the integration tests are run. Usage is to clean up things set
+  # up by $BEFORE_FILE
+  AFTER_FILE: "./quickstarts/.github/workflows/quickstart_${{ inputs.QUICKSTART_PATH }}_ci_after.sh"
+
 jobs:
   Matrix-Setup:
     runs-on: ubuntu-latest
@@ -67,13 +75,11 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
       - name: Run before script
-        env:
-          FILE: "./quickstarts/.github/workflows/quickstart_${{ inputs.QUICKSTART_PATH }}_ci_before.sh"
         run: |
-          if test -f $FILE;
+          if test -f $BEFORE_FILE;
             then
-              chmod +x $FILE
-              bash $FILE
+              chmod +x $BEFORE_FILE
+              bash $BEFORE_FILE
           fi
         shell: bash
       - name: Build ${{ inputs.QUICKSTART_PATH }} Quickstart for Release
@@ -118,13 +124,11 @@ jobs:
           mvn -U -B -fae clean package -Popenshift
         shell: bash
       - name: Run after script
-        env:
-          FILE: "./quickstarts/.github/workflows/quickstart_${{ inputs.QUICKSTART_PATH }}_ci_after.sh"
         run: |
-          if test -f $FILE;
+          if test -f $AFTER_FILE;
             then
-              chmod +x $FILE
-              bash $FILE
+              chmod +x $AFTER_FILE
+              bash $AFTER_FILE
           fi
         shell: bash
       - uses: actions/upload-artifact@v3
@@ -168,13 +172,11 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
       - name: Run before script
-        env:
-          FILE: "./quickstarts/.github/workflows/quickstart_${{ inputs.QUICKSTART_PATH }}_ci_before.sh"
         run: |
-          if test -f $FILE;
+          if test -f $BEFORE_FILE;
             then
-              chmod +x $FILE
-              bash $FILE
+              chmod +x $BEFORE_FILE
+              bash $BEFORE_FILE
           fi
         shell: bash
       - name: Build Quickstart for Release with built Server version
@@ -219,13 +221,11 @@ jobs:
           mvn -U -B -fae clean package -Popenshift -Dversion.server=${{ needs.wildfly-build.outputs.wildfly-version }}
         shell: bash
       - name: Run after script
-        env:
-          FILE: "./quickstarts/.github/workflows/quickstart_${{ inputs.QUICKSTART_PATH }}_ci_after.sh"
         run: |
-          if test -f $FILE;
+          if test -f $AFTER_FILE;
             then
-              chmod +x $FILE
-              bash $FILE
+              chmod +x $AFTER_FILE
+              bash $AFTER_FILE
           fi
         shell: bash
       - uses: actions/upload-artifact@v3

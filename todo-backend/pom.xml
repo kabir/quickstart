@@ -45,13 +45,9 @@
 
     <properties>
         <!-- The versions for BOMs, Dependencies and Plugins -->
-        <version.server.bootable-jar>30.0.0.Final</version.server.bootable-jar>
-        <version.wildfly-jar.maven.plugin>10.0.0.Final</version.wildfly-jar.maven.plugin>
-        <version.wildfly-datasources-galleon-pack>6.0.0.Final</version.wildfly-datasources-galleon-pack>
         <version.server.bom>30.0.0.Final</version.server.bom>
         <version.server>30.0.0.Final</version.server>
-        <version.wildfly.maven.plugin>4.2.0.Final</version.wildfly.maven.plugin>
-        <version.cloud.fp>5.0.0.Final</version.cloud.fp>
+        <version.plugin.wildfly>5.0.0.Beta1</version.plugin.wildfly>
     </properties>
 
     <repositories>
@@ -121,7 +117,17 @@
             </dependency>
         </dependencies>
     </dependencyManagement>
-
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.wildfly.plugins</groupId>
+                    <artifactId>wildfly-maven-plugin</artifactId>
+                    <version>${version.plugin.wildfly}</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
     <dependencies>
         <dependency>
             <groupId>jakarta.enterprise</groupId>
@@ -190,22 +196,15 @@
                     <plugin>
                         <groupId>org.wildfly.plugins</groupId>
                         <artifactId>wildfly-maven-plugin</artifactId>
-                        <version>${version.wildfly.maven.plugin}</version>
                         <configuration>
-                            <feature-packs>
-                                <feature-pack>
-                                    <location>org.wildfly:wildfly-galleon-pack:${version.server}</location>
-                                </feature-pack>
-                                <feature-pack>
-                                    <groupId>org.wildfly</groupId>
-                                    <artifactId>wildfly-datasources-galleon-pack</artifactId>
-                                    <version>${version.wildfly-datasources-galleon-pack}</version>
-                                </feature-pack>
-                            </feature-packs>
-                            <layers>
-                                <layer>cloud-server</layer>
-                                <layer>postgresql-datasource</layer>
-                            </layers>
+                            <discover-provisioning-info>
+                                <version>${version.server}</version>
+                                <add-ons>
+                                    <add-on>postgresql</add-on>
+                                </add-ons>
+                            </discover-provisioning-info>
+                            <!-- deploys the quickstart on root web context -->
+                            <name>ROOT.war</name>
                         </configuration>
                         <executions>
                             <execution>
@@ -249,44 +248,21 @@
             </build>
         </profile>
         <profile>
-            <id>bootable-jar-openshift</id>
+            <id>bootable-jar</id>
             <build>
-                <!-- Set the name of the WAR, used as the context root when the app is deployed -->
-                <finalName>${project.artifactId}</finalName>
                 <plugins>
                     <plugin>
                         <groupId>org.wildfly.plugins</groupId>
-                        <artifactId>wildfly-jar-maven-plugin</artifactId>
-                        <version>${version.wildfly-jar.maven.plugin}</version>
+                        <artifactId>wildfly-maven-plugin</artifactId>
                         <configuration>
-                            <feature-packs>
-                                <feature-pack>
-                                    <location>wildfly@maven(org.jboss.universe:community-universe)#${version.server.bootable-jar}</location>
-                                </feature-pack>
-                                <feature-pack>
-                                    <groupId>org.wildfly</groupId>
-                                    <artifactId>wildfly-datasources-galleon-pack</artifactId>
-                                    <version>${version.wildfly-datasources-galleon-pack}</version>
-                                </feature-pack>
-                            </feature-packs>
-                            <cloud/>
-                            <layers>
-                                <layer>cloud-server</layer>
-                                <layer>postgresql-datasource</layer>
-                            </layers>
-                            <cli-sessions>
-                                <cli-session>
-                                    <!-- do not resolve expression as the CORS_ORIGIN env var -->
-                                    <!-- can be set at runtime -->
-                                    <resolve-expressions>false</resolve-expressions>
-                                    <script-files>
-                                        <script>${project.build.scriptSourceDirectory}/cors_filters.cli</script>
-                                    </script-files>
-                                </cli-session>
-                            </cli-sessions>
-                            <plugin-options>
-                                <jboss-fork-embedded>true</jboss-fork-embedded>
-                            </plugin-options>
+                            <discover-provisioning-info>
+                                <version>${version.server}</version>
+                                <add-ons>
+                                    <add-on>postgresql</add-on>
+                                </add-ons>
+                            </discover-provisioning-info>
+                            <bootable-jar>true</bootable-jar>
+                            <runtime-name>ROOT.war</runtime-name>
                         </configuration>
                         <executions>
                             <execution>
@@ -306,22 +282,14 @@
                     <plugin>
                         <groupId>org.wildfly.plugins</groupId>
                         <artifactId>wildfly-maven-plugin</artifactId>
-                        <version>${version.wildfly.maven.plugin}</version>
                         <configuration>
-                            <feature-packs>
-                                <feature-pack>
-                                    <location>org.wildfly:wildfly-galleon-pack:${version.server}</location>
-                                </feature-pack>
-                                <feature-pack>
-                                    <groupId>org.wildfly</groupId>
-                                    <artifactId>wildfly-datasources-galleon-pack</artifactId>
-                                    <version>${version.wildfly-datasources-galleon-pack}</version>
-                                </feature-pack>
-                            </feature-packs>
-                            <layers>
-                                <layer>cloud-server</layer>
-                                <layer>postgresql-datasource</layer>
-                            </layers>
+                            <discover-provisioning-info>
+                                <version>${version.server}</version>
+                                <context>cloud</context>
+                                <add-ons>
+                                    <add-on>postgresql</add-on>
+                                </add-ons>
+                            </discover-provisioning-info>
                             <filename>ROOT.war</filename>
                             <packaging-scripts>
                                 <packaging-script>

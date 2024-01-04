@@ -202,7 +202,7 @@
                         <artifactId>wildfly-maven-plugin</artifactId>
                         <configuration>
                             <!-- deploys the quickstart on root web context -->
-                            <name>ROOT.war</name>
+                            <filename>ROOT.war</filename>
                             <discover-provisioning-info>
                                 <version>${version.server}</version>
                                 <context>cloud</context>

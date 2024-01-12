@@ -47,6 +47,12 @@ on:
         required: false
         default: ''
         type: string
+      MVN_COMMAND:
+        description: 'Maven command to use when building the project. Default is ''package'', ears needs ''install'''
+        required: false
+        default: 'package'
+        type: string
+
 
 # Only run the latest job
 concurrency:
@@ -101,7 +107,8 @@ jobs:
         run: |
           cd quickstarts
           cd ${{ inputs.QUICKSTART_PATH }}
-          mvn -fae clean install -Drelease
+          # Make sure it builds
+          mvn -fae clean package -Drelease
         shell: bash
       - name: Build, run & test ${{ inputs.QUICKSTART_PATH }} Quickstart with provisioned-server profile
         if: ${{ inputs.TEST_PROVISIONED_SERVER }}
@@ -109,7 +116,7 @@ jobs:
           cd quickstarts
           cd ${{ inputs.QUICKSTART_PATH }}
           echo "Building provisioned server..."
-          mvn -fae clean package -Pprovisioned-server
+          mvn -fae clean ${{ env.MVN_COMMAND }} -Pprovisioned-server
           if [ -f ${{ inputs.DEPLOYMENT_DIR }}/target/server/bin/add-user.sh ]; then 
             echo "Add quickstartUser..."
             ${{ inputs.DEPLOYMENT_DIR }}/target/server/bin/add-user.sh -a -u 'quickstartUser' -p 'quickstartPwd1!' -g 'guest,user,JBossAdmin,Users'
@@ -129,7 +136,7 @@ jobs:
           cd quickstarts
           cd ${{ inputs.QUICKSTART_PATH }}
           echo "Building bootable jar..."
-          mvn -fae clean package -Pbootable-jar
+          mvn -fae clean ${{ env.MVN_COMMAND }} -Pbootable-jar
           echo "Starting bootable jar..."
           mvn -f ${{ inputs.DEPLOYMENT_DIR }}/pom.xml wildfly:start-jar -Dstartup-timeout=120  ${{ inputs.EXTRA_RUN_ARGS }}
           echo "Testing bootable jar..."
@@ -216,7 +223,7 @@ jobs:
           cd quickstarts
           cd ${{ inputs.QUICKSTART_PATH }}
           echo "Building provisioned server..."
-          mvn -fae clean package -Pprovisioned-server -Dversion.server=${{ needs.wildfly-build.outputs.wildfly-version }} ${{ env.WILDFLY_SNAPSHOT_EXTRA_PACKAGE_ARGUMENTS }}
+          mvn -fae clean ${{ env.MVN_COMMAND }} -Pprovisioned-server -Dversion.server=${{ needs.wildfly-build.outputs.wildfly-version }} ${{ env.WILDFLY_SNAPSHOT_EXTRA_PACKAGE_ARGUMENTS }}
           if [ -f ${{ inputs.DEPLOYMENT_DIR }}/target/server/bin/add-user.sh ]; then
             echo "Add quickstartUser..."
             ${{ inputs.DEPLOYMENT_DIR }}/target/server/bin/add-user.sh -a -u 'quickstartUser' -p 'quickstartPwd1!' -g 'guest,user,JBossAdmin,Users'
@@ -236,7 +243,7 @@ jobs:
           cd quickstarts
           cd ${{ inputs.QUICKSTART_PATH }}
           echo "Building bootable jar..."
-          mvn -fae clean package -Pbootable-jar -Dversion.server=${{ needs.wildfly-build.outputs.wildfly-version }} ${{ env.WILDFLY_SNAPSHOT_EXTRA_PACKAGE_ARGUMENTS }}
+          mvn -fae clean ${{ env.MVN_COMMAND }} -Pbootable-jar -Dversion.server=${{ needs.wildfly-build.outputs.wildfly-version }} ${{ env.WILDFLY_SNAPSHOT_EXTRA_PACKAGE_ARGUMENTS }}
           echo "Starting bootable jar..."
           mvn -f ${{ inputs.DEPLOYMENT_DIR }}/pom.xml wildfly:start-jar -Dstartup-timeout=120 ${{ inputs.EXTRA_RUN_ARGS }}
           echo "Testing bootable jar..."

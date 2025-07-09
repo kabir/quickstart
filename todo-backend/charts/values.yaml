@@ -46,7 +46,9 @@ wildfly:
           value: "96"
       initContainers:
         - name: check-db-ready
-          image: busybox:1.36
-          command: ['sh', '-c',
-                    'until nc -z -v -w 2 todo-backend-postgresql 5432; 
-                     do echo "waiting for database"; sleep 2; done;']
+          # Same image as Helm chart but seems very specific
+          image: docker.io/bitnami/postgresql:16.0.0-debian-11-r13
+          command: [ 'sh', '-c',
+              'until pg_isready -h todo-backend-postgresql -p 5432; 
+                    do echo waiting for database; sleep 2; done;' ]
+

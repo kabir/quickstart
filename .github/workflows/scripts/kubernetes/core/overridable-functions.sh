@@ -185,7 +185,7 @@ function customRunningTests() {
 # 3 - extra maven argument for the verify target
 #
 function runningTests() {
-  echo "Nothing to do in portForward()..."
+  echo "Nothing to do in runningTests()..."
 }
 
 # Trigger a custom behaviour when it comes to

@@ -159,8 +159,8 @@
                         <env>
                             <POSTGRESQL_DATABASE>test</POSTGRESQL_DATABASE>
                             <POSTGRESQL_JNDI>java:jboss/datasources/ejbJtaDs</POSTGRESQL_JNDI>
-                            <POSTGRESQL_PASSWORD>${postgresqlUsername}</POSTGRESQL_PASSWORD>
-                            <POSTGRESQL_USER>${postgresqlPassword}</POSTGRESQL_USER>
+                            <POSTGRESQL_PASSWORD>${postgresqlPassword}</POSTGRESQL_PASSWORD>
+                            <POSTGRESQL_USER>${postgresqlUsername}</POSTGRESQL_USER>
                         </env>
                     </configuration>
                 </plugin>
@@ -210,8 +210,8 @@
                                 <POSTGRESQL_HOST>${postgresqlHost:localhost}</POSTGRESQL_HOST>
                                 <POSTGRESQL_DATABASE>test</POSTGRESQL_DATABASE>
                                 <POSTGRESQL_JNDI>java:jboss/datasources/ejbJtaDs</POSTGRESQL_JNDI>
-                                <POSTGRESQL_PASSWORD>${postgresqlUsername}</POSTGRESQL_PASSWORD>
-                                <POSTGRESQL_USER>${postgresqlPassword}</POSTGRESQL_USER>
+                                <POSTGRESQL_PASSWORD>${postgresqlPassword}</POSTGRESQL_PASSWORD>
+                                <POSTGRESQL_USER>${postgresqlUsername}</POSTGRESQL_USER>
                             </env>
                             <discover-provisioning-info>
                                 <version>${version.server}</version>

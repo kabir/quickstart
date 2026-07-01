@@ -209,7 +209,7 @@ function runningTests() {
 
   client_test_status="$?"
 
-  if [ "$?" != "0" ]; then
+  if [ "${client_test_status}" != "0" ]; then
     client_test_status=1
     echo "Tests failed!"
     echo "Dumping the application pod"
@@ -234,7 +234,7 @@ function runningTests() {
 
   server_test_status="$?"
 
-  if [ "$?" != "0" ]; then
+  if [ "${server_test_status}" != "0" ]; then
     server_test_status=1
     echo "Tests failed!"
     echo "Dumping the application pods"
@@ -243,7 +243,7 @@ function runningTests() {
     testsFailed
   fi
 
-  if (( client_test_status == 1 || server_test_status == 1 )); then
+  if (( client_test_status != 0 || server_test_status != 0 )); then
     result=1
   else
     result=0
@@ -253,7 +253,7 @@ function runningTests() {
 }
 
 function customHelmUninstall() {
-  return 0
+  echo 1
 }
 
 function helmUninstall() {
